@@ -1,18 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function DELETE(
-  req: NextRequest,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) {
+  const user = await getAuthUser();
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   }
 
-  const { id } = await params;
-  await prisma.watchlistItem.deleteMany({ where: { id, userId } });
-  return NextResponse.json({ message: 'Removed from watchlist' });
+  try {
+    const { id } = await params;
+    await prisma.watchlistItem.deleteMany({ where: { id, userId: user.id } });
+    return NextResponse.json({ message: 'Removed from watchlist' });
+  } catch (error) {
+    console.error('Watchlist DELETE error:', error);
+    return NextResponse.json({ error: 'Failed to remove from watchlist', code: 'DB_ERROR' }, { status: 500 });
+  }
 }

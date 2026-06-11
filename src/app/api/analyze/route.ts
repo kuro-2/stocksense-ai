@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getQuote, getHistory } from '@/lib/yahoo-finance';
 import { calculateRSI, calculateSMA, findSupportResistance, getRSIInterpretation } from '@/lib/technical';
-import { analyzeStock } from '@/lib/anthropic';
+import { analyzeStock } from '@/lib/gemini';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';

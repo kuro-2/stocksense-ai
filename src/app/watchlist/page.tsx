@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Plus, Trash2, TrendingUp, Loader2 } from 'lucide-react';
 import { formatINR, formatPercent } from '@/lib/utils';
@@ -17,10 +16,10 @@ interface WatchlistItem {
 }
 
 export default function WatchlistPage() {
-  const router = useRouter();
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [unauthorized, setUnauthorized] = useState(false);
   const [addSymbol, setAddSymbol] = useState('');
   const [addName, setAddName] = useState('');
   const [adding, setAdding] = useState(false);
@@ -29,10 +28,8 @@ export default function WatchlistPage() {
   async function fetchWatchlist() {
     setLoading(true);
     try {
-      const res = await fetch('/api/watchlist', {
-        headers: { 'x-user-id': 'demo-user' },
-      });
-      if (res.status === 401) { router.push('/login'); return; }
+      const res = await fetch('/api/watchlist');
+      if (res.status === 401) { setUnauthorized(true); return; }
       const data = await res.json();
       setItems(data.items ?? []);
     } catch {
@@ -50,7 +47,7 @@ export default function WatchlistPage() {
     setAdding(true);
     await fetch('/api/watchlist', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-user-id': 'demo-user' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ symbol: addSymbol.toUpperCase(), stockName: addName }),
     });
     setAddSymbol(''); setAddName(''); setShowAdd(false); setAdding(false);
@@ -58,11 +55,20 @@ export default function WatchlistPage() {
   }
 
   async function handleRemove(id: string) {
-    await fetch(`/api/watchlist/${id}`, {
-      method: 'DELETE',
-      headers: { 'x-user-id': 'demo-user' },
-    });
+    await fetch(`/api/watchlist/${id}`, { method: 'DELETE' });
     setItems(prev => prev.filter(i => i.id !== id));
+  }
+
+  if (unauthorized) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navbar />
+        <div className="max-w-4xl mx-auto px-4 py-16 text-center text-slate-500">
+          <p className="font-medium mb-2">Please log in to view your watchlist</p>
+          <Link href="/login" className="text-blue-600 font-medium hover:underline">Go to login</Link>
+        </div>
+      </div>
+    );
   }
 
   return (

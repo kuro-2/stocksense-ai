@@ -1,6 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const yahooFinance = require('yahoo-finance2').default ?? require('yahoo-finance2');
+import YahooFinance from 'yahoo-finance2';
 import { prisma } from './prisma';
+
+const yahooFinance = new YahooFinance();
 
 const CACHE_DURATION = {
   quote: 15,
@@ -55,10 +56,22 @@ export async function getHistory(symbol: string, period: '1mo' | '3mo' | '6mo' |
   const days = periodMap[period];
   const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-  const history = await yahooFinance.historical(`${symbol}.NS`, {
+  const result = await yahooFinance.chart(`${symbol}.NS`, {
     period1: startDate,
+    period2: new Date(),
     interval: '1d',
   });
+
+  const history = result.quotes
+    .filter(q => q.close != null)
+    .map(q => ({
+      date: q.date,
+      open: q.open,
+      high: q.high,
+      low: q.low,
+      close: q.close,
+      volume: q.volume,
+    }));
 
   await setCache(symbol, cacheKey, history, CACHE_DURATION.history);
   return history;

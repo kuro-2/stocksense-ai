@@ -6,11 +6,10 @@ import { Plus, Loader2, TrendingUp } from 'lucide-react';
 import { formatINR, formatPercent } from '@/lib/utils';
 import type { PortfolioSummary, TradeInput } from '@/types/portfolio';
 
-const USER_ID = 'demo-user';
-
 export default function PortfolioPage() {
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
   const [showTradeForm, setShowTradeForm] = useState(false);
   const [tradeError, setTradeError] = useState<string | null>(null);
   const [tradeSuccess, setTradeSuccess] = useState<string | null>(null);
@@ -22,7 +21,8 @@ export default function PortfolioPage() {
   async function fetchSummary() {
     setLoading(true);
     try {
-      const res = await fetch('/api/portfolio/summary', { headers: { 'x-user-id': USER_ID } });
+      const res = await fetch('/api/portfolio/summary');
+      if (res.status === 401) { setUnauthorized(true); return; }
       const data = await res.json();
       setSummary(data);
     } catch {
@@ -41,7 +41,7 @@ export default function PortfolioPage() {
     setTradeSuccess(null);
     const res = await fetch('/api/portfolio/trade', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-user-id': USER_ID },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
     const data = await res.json();
@@ -56,6 +56,18 @@ export default function PortfolioPage() {
   }
 
   const pnlColor = (v: number) => v >= 0 ? 'text-green-600' : 'text-red-600';
+
+  if (unauthorized) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navbar />
+        <div className="max-w-4xl mx-auto px-4 py-16 text-center text-slate-500">
+          <p className="font-medium mb-2">Please log in to view your portfolio</p>
+          <Link href="/login" className="text-blue-600 font-medium hover:underline">Go to login</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">

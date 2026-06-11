@@ -52,6 +52,8 @@ export function StockSearch() {
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter' && query.trim()) {
       handleSelect(query.trim().toUpperCase());
+    } else if (e.key === 'Escape') {
+      setOpen(false);
     }
   }
 

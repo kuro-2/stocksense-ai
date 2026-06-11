@@ -9,9 +9,10 @@ export async function GET(
 ) {
   const { symbol } = await params;
   const period = (req.nextUrl.searchParams.get('period') ?? '3mo') as '1mo' | '3mo' | '6mo' | '1y';
+  const cleanSymbol = symbol.toUpperCase().replace(/\s+/g, '').replace('.NS', '').replace('.BO', '');
 
   try {
-    const history = await getHistory(symbol.toUpperCase(), period);
+    const history = await getHistory(cleanSymbol, period);
     const data = (history as Array<{ date: Date; open: number; high: number; low: number; close: number; volume: number }>).map(h => ({
       date: h.date instanceof Date ? h.date.toISOString().split('T')[0] : String(h.date),
       open: h.open,
@@ -20,9 +21,13 @@ export async function GET(
       close: h.close,
       volume: h.volume,
     }));
-    return NextResponse.json({ symbol: symbol.toUpperCase(), period, interval: '1d', data });
+    return NextResponse.json({ symbol: cleanSymbol, period, interval: '1d', data });
   } catch (error) {
-    console.error('History error:', error);
+    console.error(`History error for ${cleanSymbol}:`, error);
+    const msg = error instanceof Error ? error.message : '';
+    if (msg.includes('Not Found') || msg.includes('No fundamentals') || msg.includes('404')) {
+      return NextResponse.json({ error: 'Stock not found', code: 'STOCK_NOT_FOUND' }, { status: 404 });
+    }
     return NextResponse.json({ error: 'Failed to fetch history', code: 'SERVER_ERROR' }, { status: 500 });
   }
 }
