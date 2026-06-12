@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getQuote, getHistory } from '@/lib/yahoo-finance';
 import { calculateRSI, calculateSMA, findSupportResistance, getRSIInterpretation } from '@/lib/technical';
-import { analyzeStock } from '@/lib/gemini';
+import { analyzeStock, getLiveNews } from '@/lib/gemini';
 import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/auth';
+import { isIndexSymbol, getMarketSymbolInfo } from '@/lib/markets';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -38,13 +40,16 @@ export async function POST(req: NextRequest) {
     const sma200 = calculateSMA(closes, 200);
     const { support, resistance } = findSupportResistance(ohlcv);
 
+    const isIndex = isIndexSymbol(symbol);
+    const marketInfo = getMarketSymbolInfo(symbol);
+
     const mktCap = quote.marketCap ?? 0;
-    const marketCapCategory =
+    const marketCapCategory = isIndex ? null :
       mktCap > 200_000_000_000 ? 'LARGE_CAP' :
       mktCap > 50_000_000_000 ? 'MID_CAP' : 'SMALL_CAP';
 
     const analysisInput = {
-      stockName: quote.longName ?? quote.shortName ?? symbol,
+      stockName: isIndex ? (marketInfo?.name ?? symbol) : (quote.longName ?? quote.shortName ?? symbol),
       symbol,
       currentPrice: quote.regularMarketPrice,
       changePercent: quote.regularMarketChangePercent ?? 0,
@@ -59,10 +64,20 @@ export async function POST(req: NextRequest) {
       sma20,
       sma50,
       sma200,
-      sector: quote.sector ?? 'Unknown',
+      sector: isIndex ? 'Index' : (quote.sector ?? 'Unknown'),
+      isIndex,
     };
 
     const aiResult = await analyzeStock(analysisInput);
+    const user = await getAuthUser();
+
+    let newsHighlights = aiResult.newsHighlights ?? [];
+    let newsSource: 'live' | 'ai' = 'ai';
+    const liveNews = await getLiveNews(analysisInput.stockName, symbol);
+    if (liveNews && liveNews.length > 0) {
+      newsHighlights = liveNews;
+      newsSource = 'live';
+    }
 
     const fullResult = {
       ...aiResult,
@@ -77,11 +92,14 @@ export async function POST(req: NextRequest) {
       sma20,
       sma50,
       sma200,
+      newsHighlights,
+      newsSource,
       generatedAt: new Date().toISOString(),
     };
 
     const saved = await prisma.analysis.create({
       data: {
+        userId: user?.id ?? null,
         symbol,
         stockName: fullResult.stockName ?? symbol,
         exchange: 'NSE',

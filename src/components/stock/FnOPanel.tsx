@@ -1,5 +1,6 @@
+import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ArrowRight } from 'lucide-react';
 import type { AnalysisResult } from '@/types/stock';
 
 interface FnOPanelProps {
@@ -48,6 +49,12 @@ export function FnOPanel({ analysis }: FnOPanelProps) {
         {analysis.foTips && (
           <p className="text-sm text-slate-700 mt-2 p-3 bg-slate-50 rounded-lg">{analysis.foTips}</p>
         )}
+        <Link
+          href={`/analysis/${analysis.symbol}/strategy`}
+          className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium mt-2"
+        >
+          Build a custom strategy <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
     </Card>
   );

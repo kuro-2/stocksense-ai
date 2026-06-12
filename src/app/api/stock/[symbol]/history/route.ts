@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ symbol: string }> }
 ) {
   const { symbol } = await params;
-  const period = (req.nextUrl.searchParams.get('period') ?? '3mo') as '1mo' | '3mo' | '6mo' | '1y';
+  const period = (req.nextUrl.searchParams.get('period') ?? '3mo') as '1mo' | '3mo' | '6mo' | '1y' | '2y';
   const cleanSymbol = symbol.toUpperCase().replace(/\s+/g, '').replace('.NS', '').replace('.BO', '');
 
   try {

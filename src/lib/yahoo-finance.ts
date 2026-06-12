@@ -1,5 +1,6 @@
 import YahooFinance from 'yahoo-finance2';
 import { prisma } from './prisma';
+import { resolveYahooSymbol } from './markets';
 
 const yahooFinance = new YahooFinance();
 
@@ -41,22 +42,22 @@ export async function getQuote(symbol: string): Promise<Record<string, any>> {
   const cached = await getCached(symbol, cacheKey);
   if (cached) return cached as Record<string, unknown>;
 
-  const quote = await yahooFinance.quote(`${symbol}.NS`);
+  const quote = await yahooFinance.quote(resolveYahooSymbol(symbol));
   await setCache(symbol, cacheKey, quote, CACHE_DURATION.quote);
   return quote;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getHistory(symbol: string, period: '1mo' | '3mo' | '6mo' | '1y'): Promise<Record<string, any>[]> {
+export async function getHistory(symbol: string, period: '1mo' | '3mo' | '6mo' | '1y' | '2y'): Promise<Record<string, any>[]> {
   const cacheKey = `history_${period}`;
   const cached = await getCached(symbol, cacheKey);
   if (cached) return cached as Record<string, unknown>[];
 
-  const periodMap: Record<string, number> = { '1mo': 30, '3mo': 90, '6mo': 180, '1y': 365 };
+  const periodMap: Record<string, number> = { '1mo': 30, '3mo': 90, '6mo': 180, '1y': 365, '2y': 730 };
   const days = periodMap[period];
   const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-  const result = await yahooFinance.chart(`${symbol}.NS`, {
+  const result = await yahooFinance.chart(resolveYahooSymbol(symbol), {
     period1: startDate,
     period2: new Date(),
     interval: '1d',

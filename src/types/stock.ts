@@ -27,6 +27,7 @@ export interface AnalysisResult {
   foStrike: number | null;
   risks: string[];
   newsHighlights: string[];
+  newsSource?: 'live' | 'ai';
   support: number;
   resistance: number;
   rsi: number;

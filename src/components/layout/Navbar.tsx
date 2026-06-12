@@ -44,6 +44,11 @@ export function Navbar() {
             <Link href="/about" className="hover:text-(--emerald) transition-colors">How It Works</Link>
             <Link href="/watchlist" className="hover:text-(--emerald) transition-colors">Watchlist</Link>
             <Link href="/portfolio" className="hover:text-(--emerald) transition-colors">Portfolio</Link>
+            <Link href="/markets" className="hover:text-(--emerald) transition-colors">Markets</Link>
+            <Link href="/screener" className="hover:text-(--emerald) transition-colors">Screener</Link>
+            <Link href="/history" className="hover:text-(--emerald) transition-colors">History</Link>
+            <Link href="/alerts" className="hover:text-(--emerald) transition-colors">Alerts</Link>
+            <Link href="/backtest" className="hover:text-(--emerald) transition-colors">Backtest</Link>
           </div>
           <div className="flex items-center gap-3">
             {!loading && user ? (

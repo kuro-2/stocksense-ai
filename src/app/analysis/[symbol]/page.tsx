@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Loader2 } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { RecommendationCard } from '@/components/stock/RecommendationCard';
 import { TechnicalPanel } from '@/components/stock/TechnicalPanel';
@@ -13,8 +13,10 @@ import { Disclaimer } from '@/components/layout/Disclaimer';
 import { AnalysisSkeleton } from '@/components/ui/Skeleton';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { OptionChainTable } from '@/components/stock/OptionChainTable';
 import { formatINR, formatPercent } from '@/lib/utils';
 import type { AnalysisResult, OHLCVPoint } from '@/types/stock';
+import type { OptionChainResult } from '@/lib/nse';
 
 const LOADING_MESSAGES = [
   'Fetching live price data...',
@@ -34,6 +36,24 @@ export default function AnalysisPage() {
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState(LOADING_MESSAGES[0]);
   const [error, setError] = useState<string | null>(null);
+  const [optionChain, setOptionChain] = useState<OptionChainResult | null>(null);
+  const [optionChainLoading, setOptionChainLoading] = useState(false);
+  const [optionChainError, setOptionChainError] = useState<string | null>(null);
+
+  const loadOptionChain = useCallback(async () => {
+    setOptionChainLoading(true);
+    setOptionChainError(null);
+    try {
+      const res = await fetch(`/api/stock/${symbol}/options`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Option chain unavailable');
+      setOptionChain(data);
+    } catch (e: unknown) {
+      setOptionChainError(e instanceof Error ? e.message : 'Option chain temporarily unavailable');
+    } finally {
+      setOptionChainLoading(false);
+    }
+  }, [symbol]);
 
   const runAnalysis = useCallback(async () => {
     setLoading(true);
@@ -185,7 +205,33 @@ export default function AnalysisPage() {
 
             <TechnicalPanel analysis={analysis} />
             <FnOPanel analysis={analysis} />
-            <NewsPanel highlights={analysis.newsHighlights} />
+
+            {/* Option chain (lazy-loaded) */}
+            {optionChain ? (
+              <OptionChainTable data={optionChain} />
+            ) : (
+              <Card>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <h3 className="font-semibold text-slate-900">Option Chain</h3>
+                    {optionChainError ? (
+                      <p className="text-sm text-red-600 mt-1">{optionChainError}</p>
+                    ) : (
+                      <p className="text-sm text-slate-500 mt-1">View live CE/PE open interest, PCR, and max pain for the nearest expiry.</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={loadOptionChain}
+                    disabled={optionChainLoading}
+                    className="flex items-center gap-2 text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  >
+                    {optionChainLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {optionChainError ? 'Retry' : 'Load Option Chain'}
+                  </button>
+                </div>
+              </Card>
+            )}
+            <NewsPanel highlights={analysis.newsHighlights} source={analysis.newsSource} />
             <RiskPanel risks={analysis.risks} />
             <Disclaimer />
           </div>

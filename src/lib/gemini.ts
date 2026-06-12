@@ -20,6 +20,7 @@ interface AnalysisInput {
   sma50: number;
   sma200: number;
   sector: string;
+  isIndex?: boolean;
 }
 
 const SYSTEM_PROMPT = `You are an expert Indian stock market analyst
@@ -98,25 +99,42 @@ export async function analyzeStock(input: AnalysisInput): Promise<Partial<Analys
     systemInstruction: SYSTEM_PROMPT,
   });
 
-  const prompt = `
-Analyze this NSE stock for investment:
+  const subject = input.isIndex
+    ? `Analyze this Indian market index for trading/investment outlook:
 
-Company: ${input.stockName} (${input.symbol})
+Index: ${input.stockName} (${input.symbol})`
+    : `Analyze this NSE stock for investment:
+
+Company: ${input.stockName} (${input.symbol})`;
+
+  const fundamentals = input.isIndex
+    ? ''
+    : `Market Cap: ₹${(input.marketCap / 10000000).toFixed(0)} Crore
+P/E Ratio: ${input.pe ?? 'N/A'}
+Sector: ${input.sector}
+`;
+
+  const closingNote = input.isIndex
+    ? `This is an INDEX, not a single company — base "sector" on "Index", set marketCap to "LARGE_CAP",
+and frame the F&O strategy in terms of index options (e.g. NIFTY/BANKNIFTY weekly/monthly options),
+not single-stock options. Reasoning should focus on overall market breadth, FII/DII flows,
+global cues, and macro factors rather than company fundamentals.`
+    : `Based on your general knowledge of this company, recent earnings trends,
+and sector outlook, provide your full analysis.`;
+
+  const prompt = `
+${subject}
 Current Price: ₹${input.currentPrice}
 Today's Change: ${input.changePercent > 0 ? '+' : ''}${input.changePercent.toFixed(2)}%
 52-Week High: ₹${input.week52High} | 52-Week Low: ₹${input.week52Low}
-Market Cap: ₹${(input.marketCap / 10000000).toFixed(0)} Crore
-P/E Ratio: ${input.pe ?? 'N/A'}
-Sector: ${input.sector}
-
+${fundamentals}
 TECHNICAL INDICATORS (pre-computed):
 RSI (14): ${input.rsi} — ${input.rsiInterpretation}
 20-Day SMA: ₹${input.sma20} | 50-Day SMA: ₹${input.sma50} | 200-Day SMA: ₹${input.sma200}
 Price vs 200 SMA: ${input.currentPrice > input.sma200 ? 'ABOVE (bullish)' : 'BELOW (bearish)'}
 Support: ₹${input.support} | Resistance: ₹${input.resistance}
 
-Based on your general knowledge of this company, recent earnings trends,
-and sector outlook, provide your full analysis.
+${closingNote}
 `.trim();
 
   const text = await generateWithRetry(model, prompt);
@@ -128,4 +146,56 @@ and sector outlook, provide your full analysis.
   }
 
   return JSON.parse(jsonMatch[0]) as Partial<AnalysisResult>;
+}
+
+interface IndexQuote {
+  name: string;
+  price: number;
+  changePercent: number;
+}
+
+export async function getMarketOutlook(indices: IndexQuote[]): Promise<string> {
+  const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+
+  const summary = indices
+    .map(i => `${i.name}: ${i.price.toLocaleString('en-IN')} (${i.changePercent > 0 ? '+' : ''}${i.changePercent.toFixed(2)}%)`)
+    .join(', ');
+
+  const prompt = `You are writing a short "today's market outlook" note for Indian retail investors.
+Here is today's snapshot of major indices: ${summary}.
+In 2-3 sentences, summarize the overall market mood and what investors should watch out for today. Plain language, no markdown, no JSON.`;
+
+  try {
+    const result = await generateWithRetry(model, prompt);
+    return result.trim();
+  } catch (error) {
+    console.error('getMarketOutlook error:', error);
+    return 'Market outlook is temporarily unavailable. Please check the latest index levels and news before making any decisions.';
+  }
+}
+
+export async function getLiveNews(stockName: string, symbol: string): Promise<string[] | null> {
+  try {
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-flash-latest',
+      tools: [{ googleSearchRetrieval: {} }],
+    });
+
+    const prompt = `Search for news from the last 7 days about ${stockName} (${symbol}) on the NSE India stock market. Return 2-4 short headlines as a JSON array of strings, e.g. ["headline 1", "headline 2"]. Respond with ONLY the JSON array, no other text.`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) return null;
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (!Array.isArray(parsed) || parsed.length === 0) return null;
+    if (!parsed.every(item => typeof item === 'string')) return null;
+
+    return parsed as string[];
+  } catch (error) {
+    console.error('getLiveNews error:', error);
+    return null;
+  }
 }
