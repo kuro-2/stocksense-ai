@@ -19,7 +19,7 @@ export function PriceChart({ data, support, resistance }: PriceChartProps) {
 
     async function init() {
       const lc = await import('lightweight-charts');
-      const { createChart, CrosshairMode } = lc;
+      const { createChart, CrosshairMode, CandlestickSeries, LineSeries } = lc;
       if (!containerRef.current) return;
 
       chart = createChart(containerRef.current, {
@@ -35,7 +35,7 @@ export function PriceChart({ data, support, resistance }: PriceChartProps) {
         timeScale: { borderColor: '#e2e8f0', timeVisible: true },
       });
 
-      const candlestick = chart.addCandlestickSeries({
+      const candlestick = chart.addSeries(CandlestickSeries, {
         upColor: '#22c55e',
         downColor: '#ef4444',
         borderUpColor: '#22c55e',
@@ -45,7 +45,7 @@ export function PriceChart({ data, support, resistance }: PriceChartProps) {
       });
 
       const chartData = data.map(d => ({
-        time: d.date as `${number}-${number}-${number}`,
+        time: d.date.slice(0, 10) as `${number}-${number}-${number}`,
         open: d.open,
         high: d.high,
         low: d.low,
@@ -54,10 +54,10 @@ export function PriceChart({ data, support, resistance }: PriceChartProps) {
 
       candlestick.setData(chartData);
 
-      const supportLine = chart.addLineSeries({ color: '#22c55e', lineWidth: 1, lineStyle: 2 });
+      const supportLine = chart.addSeries(LineSeries, { color: '#22c55e', lineWidth: 1, lineStyle: 2 });
       supportLine.setData(chartData.map((d: { time: string }) => ({ time: d.time, value: support })));
 
-      const resistanceLine = chart.addLineSeries({ color: '#ef4444', lineWidth: 1, lineStyle: 2 });
+      const resistanceLine = chart.addSeries(LineSeries, { color: '#ef4444', lineWidth: 1, lineStyle: 2 });
       resistanceLine.setData(chartData.map((d: { time: string }) => ({ time: d.time, value: resistance })));
 
       chart.timeScale().fitContent();
