@@ -1,10 +1,11 @@
 'use client';
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Loader2 } from 'lucide-react';
 import type { SearchResult } from '@/types/stock';
 
-export function StockSearch() {
+export function QuickSearch({ className }: { className?: string }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -58,12 +59,12 @@ export function StockSearch() {
   }
 
   return (
-    <div ref={wrapperRef} className="relative w-full max-w-2xl">
-      <div className="flex items-center gap-3 glass-card rounded-xl px-4 py-3 focus-within:border-emerald/50 transition-colors">
+    <div ref={wrapperRef} className={`relative w-full max-w-md ${className ?? ''}`}>
+      <div className="flex items-center gap-2.5 glass-card rounded-xl px-3.5 h-10 focus-within:border-emerald/50 transition-colors">
         {loading ? (
-          <Loader2 className="w-5 h-5 text-(--muted) animate-spin flex-shrink-0" />
+          <Loader2 className="w-4 h-4 text-slate-400 animate-spin flex-shrink-0" />
         ) : (
-          <Search className="w-5 h-5 text-(--muted) flex-shrink-0" />
+          <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
         )}
         <input
           type="text"
@@ -71,8 +72,8 @@ export function StockSearch() {
           onChange={e => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search stock (e.g. HDFC Bank, RELIANCE, TCS...)"
-          className="flex-1 outline-none text-base bg-transparent text-(--foreground) placeholder-slate-400"
+          placeholder="Search any NSE/BSE stock..."
+          className="flex-1 outline-none text-sm bg-transparent text-(--foreground) placeholder-slate-400 min-w-0"
         />
       </div>
       {open && results.length > 0 && (
@@ -81,7 +82,7 @@ export function StockSearch() {
             <button
               key={`${r.exchange}:${r.symbol}`}
               onClick={() => handleSelect(r.symbol)}
-              className="w-full flex items-center justify-between px-4 py-3 hover:bg-(--surface-hover) text-left transition-colors border-b border-(--surface-border) last:border-0"
+              className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-(--surface-hover) text-left transition-colors border-b border-(--surface-border) last:border-0"
             >
               <div>
                 <span className="font-semibold text-(--foreground)">{r.symbol}</span>

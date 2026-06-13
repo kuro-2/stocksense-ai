@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Navbar } from '@/components/layout/Navbar';
 import { Plus, Loader2, TrendingUp } from 'lucide-react';
 import { formatINR, formatPercent } from '@/lib/utils';
 import type { PortfolioSummary, TradeInput } from '@/types/portfolio';
@@ -59,25 +58,20 @@ export default function PortfolioPage() {
 
   if (unauthorized) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-16 text-center text-slate-500">
-          <p className="font-medium mb-2">Please log in to view your portfolio</p>
-          <Link href="/login" className="text-blue-600 font-medium hover:underline">Go to login</Link>
-        </div>
+      <div className="max-w-4xl mx-auto py-16 text-center text-(--muted)">
+        <p className="font-medium mb-2">Please log in to view your portfolio</p>
+        <Link href="/login" className="text-emerald font-medium hover:underline">Go to login</Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
-      <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">Paper Portfolio</h1>
+          <h1 className="font-display text-2xl font-bold text-(--foreground)">Paper Portfolio</h1>
           <button
             onClick={() => setShowTradeForm(v => !v)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md shadow-emerald/20 hover:opacity-90 transition-opacity"
           >
             <Plus className="w-4 h-4" /> New Trade
           </button>
@@ -89,8 +83,8 @@ export default function PortfolioPage() {
 
         {/* Trade form */}
         {showTradeForm && (
-          <form onSubmit={handleTrade} className="bg-white border border-slate-200 rounded-xl p-5 mb-5 shadow-sm">
-            <h3 className="font-semibold text-slate-900 mb-4">Execute Paper Trade</h3>
+          <form onSubmit={handleTrade} className="glass-card rounded-xl p-5 mb-5">
+            <h3 className="font-semibold text-(--foreground) mb-4">Execute Paper Trade</h3>
             {tradeError && (
               <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{tradeError}</div>
             )}
@@ -144,12 +138,12 @@ export default function PortfolioPage() {
             )}
             <div className="flex gap-3 mt-4">
               <button type="submit" disabled={submitting}
-                className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                className="bg-gradient-to-r from-emerald to-emerald-light text-white px-5 py-2 rounded-lg text-sm font-medium shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 flex items-center gap-2 transition-opacity"
               >
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />} Execute Trade
               </button>
               <button type="button" onClick={() => setShowTradeForm(false)}
-                className="px-5 py-2 rounded-lg text-sm text-slate-600 border border-slate-200 hover:bg-slate-50"
+                className="px-5 py-2 rounded-lg text-sm text-(--muted) glass-card glass-card-hover"
               >
                 Cancel
               </button>
@@ -168,13 +162,13 @@ export default function PortfolioPage() {
             {/* Summary cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
               {[
-                { label: 'Virtual Cash', value: formatINR(summary.virtualCash), color: 'text-slate-900' },
-                { label: 'Total Value', value: formatINR(summary.virtualCash + summary.currentValue), color: 'text-slate-900' },
+                { label: 'Virtual Cash', value: formatINR(summary.virtualCash), color: 'text-(--foreground)' },
+                { label: 'Total Value', value: formatINR(summary.virtualCash + summary.currentValue), color: 'text-(--foreground)' },
                 { label: 'Total P&L', value: `${summary.totalPnL >= 0 ? '+' : ''}${formatINR(summary.totalPnL)}`, sub: formatPercent(summary.totalPnLPercent), color: pnlColor(summary.totalPnL) },
-                { label: 'Open Positions', value: String(summary.positions.length), color: 'text-slate-900' },
+                { label: 'Open Positions', value: String(summary.positions.length), color: 'text-(--foreground)' },
               ].map(card => (
-                <div key={card.label} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                  <p className="text-xs text-slate-500 mb-1">{card.label}</p>
+                <div key={card.label} className="glass-card rounded-xl p-4">
+                  <p className="text-xs text-(--muted) mb-1">{card.label}</p>
                   <p className={`text-lg font-bold ${card.color}`}>{card.value}</p>
                   {card.sub && <p className={`text-xs ${card.color}`}>{card.sub}</p>}
                 </div>
@@ -183,9 +177,9 @@ export default function PortfolioPage() {
 
             {/* Positions */}
             {summary.positions.length > 0 ? (
-              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm mb-5">
-                <div className="px-4 py-3 border-b border-slate-100">
-                  <h3 className="font-semibold text-slate-900">Open Positions</h3>
+              <div className="glass-card rounded-xl overflow-hidden mb-5">
+                <div className="px-4 py-3 border-b border-(--surface-border)">
+                  <h3 className="font-semibold text-(--foreground)">Open Positions</h3>
                 </div>
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50">
@@ -225,7 +219,7 @@ export default function PortfolioPage() {
                 </table>
               </div>
             ) : (
-              <div className="text-center py-12 text-slate-400">
+              <div className="text-center py-12 text-(--muted)">
                 <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-30" />
                 <p className="font-medium">No open positions</p>
                 <p className="text-sm mt-1">Execute a paper trade to get started. You have {formatINR(summary.virtualCash)} virtual cash.</p>
@@ -234,10 +228,9 @@ export default function PortfolioPage() {
           </>
         )}
 
-        <p className="text-xs text-slate-400 text-center mt-6">
+        <p className="text-xs text-(--muted) text-center mt-6">
           ⚠️ This is a paper trading simulator. No real money is involved.
         </p>
-      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import type { OHLCVPoint } from '@/types/stock';
+import { useTheme } from '@/components/theme/ThemeProvider';
 
 interface PriceChartProps {
   data: OHLCVPoint[];
@@ -8,8 +9,23 @@ interface PriceChartProps {
   resistance: number;
 }
 
+const LIGHT_COLORS = {
+  background: '#ffffff',
+  text: '#334155',
+  grid: '#f1f5f9',
+  border: '#e2e8f0',
+};
+
+const DARK_COLORS = {
+  background: '#060f1c',
+  text: '#e7edf5',
+  grid: 'rgba(255, 255, 255, 0.06)',
+  border: 'rgba(255, 255, 255, 0.08)',
+};
+
 export function PriceChart({ data, support, resistance }: PriceChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (!containerRef.current || !data?.length) return;
@@ -22,17 +38,19 @@ export function PriceChart({ data, support, resistance }: PriceChartProps) {
       const { createChart, CrosshairMode, CandlestickSeries, LineSeries } = lc;
       if (!containerRef.current) return;
 
+      const colors = theme === 'dark' ? DARK_COLORS : LIGHT_COLORS;
+
       chart = createChart(containerRef.current, {
         width: containerRef.current.clientWidth,
         height: 350,
         crosshair: { mode: CrosshairMode.Normal },
-        layout: { background: { color: '#ffffff' }, textColor: '#334155' },
+        layout: { background: { color: colors.background }, textColor: colors.text },
         grid: {
-          vertLines: { color: '#f1f5f9' },
-          horzLines: { color: '#f1f5f9' },
+          vertLines: { color: colors.grid },
+          horzLines: { color: colors.grid },
         },
-        rightPriceScale: { borderColor: '#e2e8f0' },
-        timeScale: { borderColor: '#e2e8f0', timeVisible: true },
+        rightPriceScale: { borderColor: colors.border },
+        timeScale: { borderColor: colors.border, timeVisible: true },
       });
 
       const candlestick = chart.addSeries(CandlestickSeries, {
@@ -65,7 +83,7 @@ export function PriceChart({ data, support, resistance }: PriceChartProps) {
 
     init();
     return () => { chart?.remove(); };
-  }, [data, support, resistance]);
+  }, [data, support, resistance, theme]);
 
   return <div ref={containerRef} className="w-full rounded-lg overflow-hidden" style={{ height: 350 }} />;
 }

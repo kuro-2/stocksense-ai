@@ -3,39 +3,49 @@ import Image from 'next/image';
 
 export function Footer() {
   return (
-    <footer className="bg-(--ink) text-slate-300">
+    <footer className="glass-panel border-t border-(--surface-border)">
       <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-8">
           <div>
-            <div className="flex items-center gap-2.5 font-display font-bold text-lg text-white mb-2">
+            <div className="flex items-center gap-2.5 font-display font-bold text-lg text-(--foreground) mb-2">
               <Image src="/logo.svg" alt="StockSense AI" width={24} height={24} />
               <span>StockSense AI</span>
             </div>
-            <p className="text-sm text-slate-400 max-w-xs">
-              AI-powered analysis for NSE/BSE stocks — clear insights, explained simply.
+            <p className="text-sm text-(--muted) max-w-xs">
+              AI-powered analysis for NSE/BSE stocks — clear insights, explained simply. Free, always.
             </p>
           </div>
           <div className="flex flex-wrap gap-x-10 gap-y-6 text-sm">
             <div>
-              <p className="font-semibold text-white mb-2">Product</p>
-              <ul className="space-y-1.5 text-slate-400">
-                <li><Link href="/" className="hover:text-emerald-light transition-colors">Home</Link></li>
-                <li><Link href="/about" className="hover:text-emerald-light transition-colors">How It Works</Link></li>
-                <li><Link href="/watchlist" className="hover:text-emerald-light transition-colors">Watchlist</Link></li>
-                <li><Link href="/portfolio" className="hover:text-emerald-light transition-colors">Portfolio</Link></li>
+              <p className="font-semibold text-(--foreground) mb-2">Explore</p>
+              <ul className="space-y-1.5 text-(--muted)">
+                <li><Link href="/" className="hover:text-emerald transition-colors">Home</Link></li>
+                <li><Link href="/features" className="hover:text-emerald transition-colors">Features</Link></li>
+                <li><Link href="/how-it-works" className="hover:text-emerald transition-colors">How It Works</Link></li>
+                <li><Link href="/who-its-for" className="hover:text-emerald transition-colors">Who It&apos;s For</Link></li>
+                <li><Link href="/get-started" className="hover:text-emerald transition-colors">Get Started</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold text-white mb-2">Legal</p>
-              <ul className="space-y-1.5 text-slate-400">
-                <li><Link href="/legal/disclaimer" className="hover:text-emerald-light transition-colors">Risk Disclosure</Link></li>
-                <li><Link href="/legal/terms" className="hover:text-emerald-light transition-colors">Terms of Service</Link></li>
-                <li><Link href="/legal/privacy" className="hover:text-emerald-light transition-colors">Privacy Policy</Link></li>
+              <p className="font-semibold text-(--foreground) mb-2">Platform</p>
+              <ul className="space-y-1.5 text-(--muted)">
+                <li><Link href="/dashboard" className="hover:text-emerald transition-colors">Dashboard</Link></li>
+                <li><Link href="/watchlist" className="hover:text-emerald transition-colors">Watchlist</Link></li>
+                <li><Link href="/portfolio" className="hover:text-emerald transition-colors">Portfolio</Link></li>
+                <li><Link href="/screener" className="hover:text-emerald transition-colors">Screener</Link></li>
+              </ul>
+            </div>
+            <div>
+              <p className="font-semibold text-(--foreground) mb-2">Legal</p>
+              <ul className="space-y-1.5 text-(--muted)">
+                <li><Link href="/legal/disclaimer" className="hover:text-emerald transition-colors">Risk Disclosure</Link></li>
+                <li><Link href="/legal/terms" className="hover:text-emerald transition-colors">Terms of Service</Link></li>
+                <li><Link href="/legal/privacy" className="hover:text-emerald transition-colors">Privacy Policy</Link></li>
               </ul>
             </div>
           </div>
         </div>
-        <div className="border-t border-white/10 pt-6 text-xs text-slate-500 space-y-2">
+        <div className="border-t border-(--surface-border) pt-6 text-xs text-(--muted) space-y-2">
           <p>
             ⚠️ StockSense AI is an educational tool only. It is not registered with SEBI as an Investment
             Adviser or Research Analyst, and nothing on this site constitutes investment advice, a research

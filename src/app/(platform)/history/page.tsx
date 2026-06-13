@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Navbar } from '@/components/layout/Navbar';
 import { Badge } from '@/components/ui/Badge';
 import { Clock, Loader2 } from 'lucide-react';
 import { formatINR, formatPercent, RECO_CONFIG } from '@/lib/utils';
@@ -47,22 +46,17 @@ export default function HistoryPage() {
 
   if (unauthorized) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-16 text-center text-slate-500">
-          <p className="font-medium mb-2">Please log in to view your analysis history</p>
-          <Link href="/login" className="text-blue-600 font-medium hover:underline">Go to login</Link>
-        </div>
+      <div className="max-w-4xl mx-auto py-16 text-center text-(--muted)">
+        <p className="font-medium mb-2">Please log in to view your analysis history</p>
+        <Link href="/login" className="text-emerald font-medium hover:underline">Go to login</Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-slate-900 mb-6">
-          Analysis History{items.length > 0 && <span className="text-slate-400 font-normal text-lg ml-2">({items.length})</span>}
+    <div className="max-w-4xl mx-auto">
+        <h1 className="font-display text-2xl font-bold text-(--foreground) mb-6">
+          Analysis History{items.length > 0 && <span className="text-(--muted) font-normal text-lg ml-2">({items.length})</span>}
         </h1>
 
         {loading && (
@@ -74,7 +68,7 @@ export default function HistoryPage() {
         {error && <div className="text-center py-12 text-red-600">{error}</div>}
 
         {!loading && !error && items.length === 0 && (
-          <div className="text-center py-16 text-slate-400">
+          <div className="text-center py-16 text-(--muted)">
             <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p className="font-medium">No analyses yet</p>
             <p className="text-sm mt-1">Run a stock analysis to see it appear here</p>
@@ -82,7 +76,7 @@ export default function HistoryPage() {
         )}
 
         {!loading && items.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+          <div className="glass-card rounded-xl overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
@@ -143,7 +137,6 @@ export default function HistoryPage() {
             <Badge variant="neutral">Showing your most recent {items.length} analyses</Badge>
           </div>
         )}
-      </div>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Navbar } from '@/components/layout/Navbar';
 import { Plus, Trash2, TrendingUp, Loader2 } from 'lucide-react';
 import { formatINR, formatPercent } from '@/lib/utils';
 
@@ -61,34 +60,29 @@ export default function WatchlistPage() {
 
   if (unauthorized) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-16 text-center text-slate-500">
-          <p className="font-medium mb-2">Please log in to view your watchlist</p>
-          <Link href="/login" className="text-blue-600 font-medium hover:underline">Go to login</Link>
-        </div>
+      <div className="max-w-4xl mx-auto py-16 text-center text-(--muted)">
+        <p className="font-medium mb-2">Please log in to view your watchlist</p>
+        <Link href="/login" className="text-emerald font-medium hover:underline">Go to login</Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
-      <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">
-            Watchlist{items.length > 0 && <span className="text-slate-400 font-normal text-lg ml-2">({items.length} stocks)</span>}
+          <h1 className="font-display text-2xl font-bold text-(--foreground)">
+            Watchlist{items.length > 0 && <span className="text-(--muted) font-normal text-lg ml-2">({items.length} stocks)</span>}
           </h1>
           <button
             onClick={() => setShowAdd(v => !v)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md shadow-emerald/20 hover:opacity-90 transition-opacity"
           >
             <Plus className="w-4 h-4" /> Add Stock
           </button>
         </div>
 
         {showAdd && (
-          <form onSubmit={handleAdd} className="bg-white border border-slate-200 rounded-xl p-4 mb-4 flex gap-3 flex-wrap">
+          <form onSubmit={handleAdd} className="glass-card rounded-xl p-4 mb-4 flex gap-3 flex-wrap">
             <input
               type="text" value={addSymbol} onChange={e => setAddSymbol(e.target.value)}
               placeholder="Symbol (e.g. RELIANCE)" required
@@ -125,7 +119,7 @@ export default function WatchlistPage() {
         )}
 
         {!loading && items.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+          <div className="glass-card rounded-xl overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
@@ -174,7 +168,6 @@ export default function WatchlistPage() {
             </table>
           </div>
         )}
-      </div>
     </div>
   );
 }

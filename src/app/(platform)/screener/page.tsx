@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Navbar } from '@/components/layout/Navbar';
 import { Badge } from '@/components/ui/Badge';
 import { Loader2, Filter, SearchX } from 'lucide-react';
 import { formatINR, formatPercent, RECO_CONFIG } from '@/lib/utils';
@@ -64,51 +63,49 @@ export default function ScreenerPage() {
   useEffect(() => { runScreener(); }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
-      <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-2 mb-2">
-          <Filter className="w-6 h-6 text-blue-600" />
-          <h1 className="text-2xl font-bold text-slate-900">Stock Screener</h1>
+          <Filter className="w-6 h-6 text-emerald" />
+          <h1 className="font-display text-2xl font-bold text-(--foreground)">Stock Screener</h1>
         </div>
-        <p className="text-sm text-slate-500 mb-6">
+        <p className="text-sm text-(--muted) mb-6">
           Filter the Nifty 50 universe by technical indicators (RSI, trend, SMA position).
         </p>
 
         <form
           onSubmit={e => { e.preventDefault(); runScreener(); }}
-          className="bg-white border border-slate-200 rounded-xl p-4 mb-6 flex flex-wrap items-end gap-4"
+          className="glass-card rounded-xl p-4 mb-6 flex flex-wrap items-end gap-4"
         >
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">RSI Min</label>
+            <label className="block text-xs font-medium text-(--muted) mb-1">RSI Min</label>
             <input
               type="number" min={0} max={100} value={rsiMin} onChange={e => setRsiMin(e.target.value)}
-              placeholder="0" className="border border-slate-200 rounded-lg px-3 py-2 text-sm w-24 focus:outline-none focus:border-blue-400"
+              placeholder="0" className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm w-24 bg-transparent focus:outline-none focus:border-emerald"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">RSI Max</label>
+            <label className="block text-xs font-medium text-(--muted) mb-1">RSI Max</label>
             <input
               type="number" min={0} max={100} value={rsiMax} onChange={e => setRsiMax(e.target.value)}
-              placeholder="100" className="border border-slate-200 rounded-lg px-3 py-2 text-sm w-24 focus:outline-none focus:border-blue-400"
+              placeholder="100" className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm w-24 bg-transparent focus:outline-none focus:border-emerald"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Trend</label>
+            <label className="block text-xs font-medium text-(--muted) mb-1">Trend</label>
             <select
               value={trend} onChange={e => setTrend(e.target.value as typeof TREND_OPTIONS[number])}
-              className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+              className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm bg-transparent focus:outline-none focus:border-emerald"
             >
               {TREND_OPTIONS.map(t => <option key={t} value={t}>{t === 'ANY' ? 'Any' : t}</option>)}
             </select>
           </div>
-          <label className="flex items-center gap-2 text-sm text-slate-700 pb-2">
+          <label className="flex items-center gap-2 text-sm text-(--muted) pb-2">
             <input type="checkbox" checked={aboveSma200} onChange={e => setAboveSma200(e.target.checked)} className="rounded" />
             Above 200-day SMA
           </label>
           <button
             type="submit" disabled={loading}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
             {loading && <Loader2 className="w-3 h-3 animate-spin" />} Run Screener
           </button>
@@ -124,18 +121,18 @@ export default function ScreenerPage() {
 
         {!loading && !error && (
           <>
-            <p className="text-sm text-slate-500 mb-3">
+            <p className="text-sm text-(--muted) mb-3">
               {results.length} of {total} stocks match your filters
             </p>
 
             {results.length === 0 ? (
-              <div className="text-center py-16 text-slate-400">
+              <div className="text-center py-16 text-(--muted)">
                 <SearchX className="w-12 h-12 mx-auto mb-3 opacity-30" />
                 <p className="font-medium">No stocks match these filters</p>
                 <p className="text-sm mt-1">Try widening the RSI range or removing filters</p>
               </div>
             ) : (
-              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm overflow-x-auto">
+              <div className="glass-card rounded-xl overflow-hidden overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
@@ -191,7 +188,6 @@ export default function ScreenerPage() {
             )}
           </>
         )}
-      </div>
     </div>
   );
 }

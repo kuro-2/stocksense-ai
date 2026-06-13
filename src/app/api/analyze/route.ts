@@ -5,6 +5,7 @@ import { analyzeStock, getLiveNews } from '@/lib/gemini';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
 import { isIndexSymbol, getMarketSymbolInfo } from '@/lib/markets';
+import type { AnalysisResult } from '@/types/stock';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -68,15 +69,30 @@ export async function POST(req: NextRequest) {
       isIndex,
     };
 
-    const aiResult = await analyzeStock(analysisInput);
+    // Reuse a recent AI verdict for this symbol to avoid burning the Gemini
+    // daily quota on near-identical re-analyses. Price/technicals above are
+    // always computed fresh; only the AI commentary and news are cached.
+    const CACHE_WINDOW_MS = 15 * 60 * 1000;
+    const cached = await prisma.analysis.findFirst({
+      where: { symbol, generatedAt: { gte: new Date(Date.now() - CACHE_WINDOW_MS) } },
+      orderBy: { generatedAt: 'desc' },
+    });
+
+    const aiResult: Partial<AnalysisResult> = cached?.rawAiResponse
+      ? (cached.rawAiResponse as Partial<AnalysisResult>)
+      : await analyzeStock(analysisInput);
     const user = await getAuthUser();
 
     let newsHighlights = aiResult.newsHighlights ?? [];
     let newsSource: 'live' | 'ai' = 'ai';
-    const liveNews = await getLiveNews(analysisInput.stockName, symbol);
-    if (liveNews && liveNews.length > 0) {
-      newsHighlights = liveNews;
-      newsSource = 'live';
+    if (cached) {
+      newsHighlights = cached.newsHighlights;
+    } else {
+      const liveNews = await getLiveNews(analysisInput.stockName, symbol);
+      if (liveNews && liveNews.length > 0) {
+        newsHighlights = liveNews;
+        newsSource = 'live';
+      }
     }
 
     const fullResult = {
@@ -97,38 +113,40 @@ export async function POST(req: NextRequest) {
       generatedAt: new Date().toISOString(),
     };
 
-    const saved = await prisma.analysis.create({
-      data: {
-        userId: user?.id ?? null,
-        symbol,
-        stockName: fullResult.stockName ?? symbol,
-        exchange: 'NSE',
-        sector: fullResult.sector,
-        marketCapCategory: marketCapCategory,
-        priceAtAnalysis: fullResult.currentPrice,
-        changePercent: fullResult.changePercent,
-        recommendation: fullResult.recommendation ?? 'HOLD',
-        confidence: fullResult.confidence ?? 'LOW',
-        targetPrice: fullResult.targetPrice ?? fullResult.currentPrice,
-        stopLoss: fullResult.stopLoss ?? fullResult.currentPrice * 0.95,
-        timeframe: fullResult.timeframe ?? '3-6 months',
-        summary: fullResult.summary ?? '',
-        reasoning: fullResult.reasoning ?? '',
-        risks: fullResult.risks ?? [],
-        trend: fullResult.trend ?? 'NEUTRAL',
-        rsiValue: fullResult.rsi,
-        support: fullResult.support,
-        resistance: fullResult.resistance,
-        foStrategy: fullResult.foStrategy ?? 'AVOID_FO',
-        foTips: fullResult.foTips,
-        foExpiry: fullResult.foExpiry ?? null,
-        foStrike: fullResult.foStrike ?? null,
-        newsHighlights: fullResult.newsHighlights ?? [],
-        rawAiResponse: aiResult,
-      },
-    });
+    const analysisId = cached
+      ? cached.id
+      : (await prisma.analysis.create({
+          data: {
+            userId: user?.id ?? null,
+            symbol,
+            stockName: fullResult.stockName ?? symbol,
+            exchange: 'NSE',
+            sector: fullResult.sector,
+            marketCapCategory: marketCapCategory,
+            priceAtAnalysis: fullResult.currentPrice,
+            changePercent: fullResult.changePercent,
+            recommendation: fullResult.recommendation ?? 'HOLD',
+            confidence: fullResult.confidence ?? 'LOW',
+            targetPrice: fullResult.targetPrice ?? fullResult.currentPrice,
+            stopLoss: fullResult.stopLoss ?? fullResult.currentPrice * 0.95,
+            timeframe: fullResult.timeframe ?? '3-6 months',
+            summary: fullResult.summary ?? '',
+            reasoning: fullResult.reasoning ?? '',
+            risks: fullResult.risks ?? [],
+            trend: fullResult.trend ?? 'NEUTRAL',
+            rsiValue: fullResult.rsi,
+            support: fullResult.support,
+            resistance: fullResult.resistance,
+            foStrategy: fullResult.foStrategy ?? 'AVOID_FO',
+            foTips: fullResult.foTips,
+            foExpiry: fullResult.foExpiry ?? null,
+            foStrike: fullResult.foStrike ?? null,
+            newsHighlights: fullResult.newsHighlights ?? [],
+            rawAiResponse: aiResult,
+          },
+        })).id;
 
-    return NextResponse.json({ ...fullResult, analysisId: saved.id });
+    return NextResponse.json({ ...fullResult, analysisId });
 
   } catch (error: unknown) {
     console.error('Analysis error:', error);

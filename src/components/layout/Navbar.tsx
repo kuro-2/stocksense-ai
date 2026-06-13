@@ -3,13 +3,24 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { LayoutDashboard, Menu, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import type { User } from '@supabase/supabase-js';
+
+const NAV_LINKS = [
+  { href: '/', label: 'Home' },
+  { href: '/features', label: 'Features' },
+  { href: '/how-it-works', label: 'How It Works' },
+  { href: '/who-its-for', label: "Who It's For" },
+  { href: '/get-started', label: 'Get Started' },
+];
 
 export function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -32,31 +43,35 @@ export function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+    <nav className="sticky top-0 z-50 glass-panel">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2.5 font-display font-bold text-xl text-(--ink)">
+          <Link href="/" className="flex items-center gap-2.5 font-display font-bold text-xl text-(--foreground)">
             <Image src="/logo.svg" alt="StockSense AI" width={28} height={28} priority />
             <span>StockSense AI</span>
           </Link>
-          <div className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
-            <Link href="/" className="hover:text-(--emerald) transition-colors">Home</Link>
-            <Link href="/about" className="hover:text-(--emerald) transition-colors">How It Works</Link>
-            <Link href="/watchlist" className="hover:text-(--emerald) transition-colors">Watchlist</Link>
-            <Link href="/portfolio" className="hover:text-(--emerald) transition-colors">Portfolio</Link>
-            <Link href="/markets" className="hover:text-(--emerald) transition-colors">Markets</Link>
-            <Link href="/screener" className="hover:text-(--emerald) transition-colors">Screener</Link>
-            <Link href="/history" className="hover:text-(--emerald) transition-colors">History</Link>
-            <Link href="/alerts" className="hover:text-(--emerald) transition-colors">Alerts</Link>
-            <Link href="/backtest" className="hover:text-(--emerald) transition-colors">Backtest</Link>
+
+          <div className="hidden md:flex items-center gap-7 text-sm font-medium text-(--muted)">
+            {NAV_LINKS.map(link => (
+              <Link key={link.href} href={link.href} className="hover:text-emerald transition-colors">
+                {link.label}
+              </Link>
+            ))}
           </div>
+
           <div className="flex items-center gap-3">
+            <ThemeToggle className="hidden sm:inline-flex" />
             {!loading && user ? (
               <>
-                <span className="hidden sm:inline text-sm text-slate-500 truncate max-w-40">{user.email}</span>
+                <Link
+                  href="/dashboard"
+                  className="hidden sm:inline-flex items-center gap-2 text-sm font-semibold bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg shadow-md shadow-emerald/20 hover:opacity-90 transition-opacity"
+                >
+                  <LayoutDashboard className="w-4 h-4" /> Dashboard
+                </Link>
                 <button
                   onClick={handleLogout}
-                  className="text-sm font-medium text-slate-600 hover:text-(--emerald) transition-colors"
+                  className="hidden sm:inline text-sm font-medium text-(--muted) hover:text-emerald transition-colors"
                 >
                   Log out
                 </button>
@@ -65,20 +80,65 @@ export function Navbar() {
               <>
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-slate-600 hover:text-(--emerald) transition-colors"
+                  className="hidden sm:inline text-sm font-medium text-(--muted) hover:text-emerald transition-colors"
                 >
                   Login
                 </Link>
                 <Link
                   href="/signup"
-                  className="text-sm font-semibold bg-(--ink) text-white px-4 py-2 rounded-lg hover:bg-(--ink-2) transition-colors"
+                  className="hidden sm:inline-flex text-sm font-semibold bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg shadow-md shadow-emerald/20 hover:opacity-90 transition-opacity"
                 >
-                  Sign up
+                  Get Started
                 </Link>
               </>
             ) : null}
+
+            <button
+              onClick={() => setMobileOpen(v => !v)}
+              className="md:hidden p-2 rounded-lg text-(--muted) hover:text-emerald hover:bg-(--surface-hover) transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {mobileOpen && (
+          <div className="md:hidden pb-4 space-y-1">
+            {NAV_LINKS.map(link => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className="block px-3 py-2 rounded-lg text-sm font-medium text-(--muted) hover:text-emerald hover:bg-(--surface-hover) transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <div className="flex items-center gap-3 px-3 pt-2">
+              <ThemeToggle />
+              {!loading && user ? (
+                <>
+                  <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex-1 text-center text-sm font-semibold bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg">
+                    Dashboard
+                  </Link>
+                  <button onClick={handleLogout} className="text-sm font-medium text-(--muted) hover:text-emerald transition-colors">
+                    Log out
+                  </button>
+                </>
+              ) : !loading ? (
+                <>
+                  <Link href="/login" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-(--muted) hover:text-emerald transition-colors">
+                    Login
+                  </Link>
+                  <Link href="/signup" onClick={() => setMobileOpen(false)} className="flex-1 text-center text-sm font-semibold bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg">
+                    Get Started
+                  </Link>
+                </>
+              ) : null}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

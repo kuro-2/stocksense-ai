@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Navbar } from '@/components/layout/Navbar';
 import { Card } from '@/components/ui/Card';
 import { Loader2, History as HistoryIcon } from 'lucide-react';
 import { formatPercent } from '@/lib/utils';
@@ -64,65 +63,63 @@ export default function BacktestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
-      <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-2 mb-2">
-          <HistoryIcon className="w-6 h-6 text-blue-600" />
-          <h1 className="text-2xl font-bold text-slate-900">Strategy Backtesting</h1>
+          <HistoryIcon className="w-6 h-6 text-emerald" />
+          <h1 className="font-display text-2xl font-bold text-(--foreground)">Strategy Backtesting</h1>
         </div>
-        <p className="text-sm text-slate-500 mb-6">
+        <p className="text-sm text-(--muted) mb-6">
           Test simple technical strategies against historical price data and compare against buy-and-hold.
         </p>
 
-        <form onSubmit={runBacktest} className="bg-white border border-slate-200 rounded-xl p-4 mb-6 flex flex-wrap items-end gap-3">
+        <form onSubmit={runBacktest} className="glass-card rounded-xl p-4 mb-6 flex flex-wrap items-end gap-3">
           <div className="relative flex-1 min-w-[200px]">
-            <label className="block text-xs font-medium text-slate-500 mb-1">Stock</label>
+            <label className="block text-xs font-medium text-(--muted) mb-1">Stock</label>
             <input
               type="text"
               value={selected ? `${selected.symbol} — ${selected.name}` : query}
               onChange={e => { setSelected(null); setQuery(e.target.value); setSearchOpen(true); }}
               onFocus={() => setSearchOpen(true)}
               placeholder="Search stock..."
-              className="border border-slate-200 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:border-blue-400"
+              className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm w-full bg-transparent focus:outline-none focus:border-emerald"
             />
             {searchOpen && results.length > 0 && !selected && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-1 glass-strong rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
                 {results.map(r => (
                   <button
                     key={`${r.exchange}:${r.symbol}`}
                     type="button"
                     onClick={() => { setSelected(r); setSearchOpen(false); }}
-                    className="w-full text-left px-3 py-2 hover:bg-slate-50 text-sm border-b border-slate-100 last:border-0"
+                    className="w-full text-left px-3 py-2 hover:bg-(--surface-hover) text-sm border-b border-(--surface-border) last:border-0"
                   >
-                    <span className="font-semibold text-slate-900">{r.symbol}</span>
-                    <span className="ml-2 text-slate-500">{r.name}</span>
+                    <span className="font-semibold text-(--foreground)">{r.symbol}</span>
+                    <span className="ml-2 text-(--muted)">{r.name}</span>
                   </button>
                 ))}
               </div>
             )}
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Strategy</label>
+            <label className="block text-xs font-medium text-(--muted) mb-1">Strategy</label>
             <select
               value={strategy} onChange={e => setStrategy(e.target.value as BacktestStrategy)}
-              className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 max-w-xs"
+              className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm bg-transparent focus:outline-none focus:border-emerald max-w-xs"
             >
               {STRATEGY_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Period</label>
+            <label className="block text-xs font-medium text-(--muted) mb-1">Period</label>
             <select
               value={period} onChange={e => setPeriod(e.target.value as typeof PERIOD_OPTIONS[number])}
-              className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+              className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm bg-transparent focus:outline-none focus:border-emerald"
             >
               {PERIOD_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
           </div>
           <button
             type="submit" disabled={loading || !selected}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
             {loading && <Loader2 className="w-3 h-3 animate-spin" />} Run Backtest
           </button>
@@ -140,29 +137,29 @@ export default function BacktestPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <Card className="text-center">
-                <p className="text-xs text-slate-500 mb-1">Strategy Return</p>
+                <p className="text-xs text-(--muted) mb-1">Strategy Return</p>
                 <p className={`font-bold font-mono ${result.stats.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {formatPercent(result.stats.totalReturn)}
                 </p>
               </Card>
               <Card className="text-center">
-                <p className="text-xs text-slate-500 mb-1">Buy & Hold Return</p>
+                <p className="text-xs text-(--muted) mb-1">Buy & Hold Return</p>
                 <p className={`font-bold font-mono ${result.stats.buyHoldReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {formatPercent(result.stats.buyHoldReturn)}
                 </p>
               </Card>
               <Card className="text-center">
-                <p className="text-xs text-slate-500 mb-1">Win Rate</p>
-                <p className="font-bold font-mono text-slate-900">{result.stats.winRate}%</p>
+                <p className="text-xs text-(--muted) mb-1">Win Rate</p>
+                <p className="font-bold font-mono text-(--foreground)">{result.stats.winRate}%</p>
               </Card>
               <Card className="text-center">
-                <p className="text-xs text-slate-500 mb-1">Max Drawdown</p>
+                <p className="text-xs text-(--muted) mb-1">Max Drawdown</p>
                 <p className="font-bold font-mono text-red-600">-{result.stats.maxDrawdown}%</p>
               </Card>
             </div>
 
             <Card>
-              <h3 className="font-semibold text-slate-900 mb-3">Equity Curve ({result.stats.numTrades} trades)</h3>
+              <h3 className="font-semibold text-(--foreground) mb-3">Equity Curve ({result.stats.numTrades} trades)</h3>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={result.equityCurve}>
@@ -180,15 +177,15 @@ export default function BacktestPage() {
 
             {result.trades.length > 0 && (
               <Card className="overflow-x-auto">
-                <h3 className="font-semibold text-slate-900 mb-3">Trades</h3>
+                <h3 className="font-semibold text-(--foreground) mb-3">Trades</h3>
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
-                      <th className="text-left px-3 py-2 font-medium text-slate-500">Entry</th>
-                      <th className="text-left px-3 py-2 font-medium text-slate-500">Exit</th>
-                      <th className="text-right px-3 py-2 font-medium text-slate-500">Entry Price</th>
-                      <th className="text-right px-3 py-2 font-medium text-slate-500">Exit Price</th>
-                      <th className="text-right px-3 py-2 font-medium text-slate-500">P&L</th>
+                      <th className="text-left px-3 py-2 font-medium text-(--muted)">Entry</th>
+                      <th className="text-left px-3 py-2 font-medium text-(--muted)">Exit</th>
+                      <th className="text-right px-3 py-2 font-medium text-(--muted)">Entry Price</th>
+                      <th className="text-right px-3 py-2 font-medium text-(--muted)">Exit Price</th>
+                      <th className="text-right px-3 py-2 font-medium text-(--muted)">P&L</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -209,7 +206,6 @@ export default function BacktestPage() {
             )}
           </div>
         )}
-      </div>
     </div>
   );
 }

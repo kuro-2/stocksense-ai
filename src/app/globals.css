@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #f8fafc;
+  --background: #f3f6fb;
   --foreground: #0f172a;
 
   /* Brand palette */
@@ -9,6 +11,36 @@
   --ink-2: #102a43;
   --emerald: #19b98a;
   --emerald-light: #2dd4a7;
+
+  /* Surfaces (glassmorphism) */
+  --surface: rgba(255, 255, 255, 0.55);
+  --surface-strong: rgba(255, 255, 255, 0.78);
+  --surface-border: rgba(15, 23, 42, 0.08);
+  --surface-hover: rgba(255, 255, 255, 0.85);
+  --muted: #64748b;
+
+  /* Sidebar */
+  --sidebar-bg: rgba(255, 255, 255, 0.65);
+  --sidebar-border: rgba(15, 23, 42, 0.06);
+}
+
+.dark {
+  --background: #060f1c;
+  --foreground: #e7edf5;
+
+  --ink: #0a1b2e;
+  --ink-2: #142f4d;
+  --emerald: #22caa0;
+  --emerald-light: #4be3bb;
+
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-strong: rgba(255, 255, 255, 0.08);
+  --surface-border: rgba(255, 255, 255, 0.08);
+  --surface-hover: rgba(255, 255, 255, 0.12);
+  --muted: #93a3b8;
+
+  --sidebar-bg: rgba(8, 18, 32, 0.6);
+  --sidebar-border: rgba(255, 255, 255, 0.07);
 }
 
 @theme inline {
@@ -21,11 +53,20 @@
   --color-emerald-light: #2dd4a7;
 }
 
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Inter, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 * {
@@ -43,11 +84,83 @@ body {
   color: transparent;
 }
 
+/* ---------------------------------------------------------------- */
+/* Ambient gradient backdrop — used behind glass surfaces            */
+/* ---------------------------------------------------------------- */
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(45, 212, 167, 0.16), transparent 38%),
+    radial-gradient(circle at 88% 18%, rgba(25, 185, 138, 0.12), transparent 40%),
+    radial-gradient(circle at 50% 95%, rgba(34, 202, 160, 0.10), transparent 45%);
+}
+
+.dark .ambient-bg {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(45, 212, 167, 0.14), transparent 40%),
+    radial-gradient(circle at 88% 14%, rgba(25, 185, 138, 0.12), transparent 42%),
+    radial-gradient(circle at 50% 100%, rgba(20, 100, 160, 0.18), transparent 50%);
+}
+
+/* ---------------------------------------------------------------- */
+/* Glassmorphism utilities                                            */
+/* ---------------------------------------------------------------- */
+.glass {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+
+.glass-card {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.06);
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.dark .glass-card {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.glass-card-hover:hover {
+  background: var(--surface-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.10);
+}
+
+.dark .glass-card-hover:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.glass-strong {
+  background: var(--surface-strong);
+  border: 1px solid var(--surface-border);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+.glass-panel {
+  background: var(--sidebar-bg);
+  border: 1px solid var(--sidebar-border);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+/* ---------------------------------------------------------------- */
+/* Legal prose                                                        */
+/* ---------------------------------------------------------------- */
 .prose-legal h2 {
   font-family: var(--font-display), 'Space Grotesk', sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--foreground);
   margin-top: 2rem;
   margin-bottom: 0.75rem;
 }
@@ -57,7 +170,7 @@ body {
 }
 
 .prose-legal p {
-  color: #475569;
+  color: var(--muted);
   margin-bottom: 1rem;
   line-height: 1.7;
 }
@@ -65,7 +178,7 @@ body {
 .prose-legal ul {
   list-style: disc;
   padding-left: 1.5rem;
-  color: #475569;
+  color: var(--muted);
   margin-bottom: 1rem;
 }
 
@@ -75,5 +188,67 @@ body {
 }
 
 .prose-legal strong {
-  color: var(--ink);
+  color: var(--foreground);
+}
+
+/* ---------------------------------------------------------------- */
+/* Retrofit shim: turns legacy slate/white surfaces into glass +     */
+/* dark-mode-aware surfaces without touching every component.        */
+/* ---------------------------------------------------------------- */
+.bg-white {
+  background-color: var(--surface) !important;
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+
+.bg-slate-50 {
+  background-color: var(--surface-strong) !important;
+}
+
+.hover\:bg-slate-50:hover {
+  background-color: var(--surface-hover) !important;
+}
+
+.border-slate-100, .border-slate-200 {
+  border-color: var(--surface-border) !important;
+}
+
+.divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--surface-border) !important;
+}
+
+.text-slate-900 {
+  color: var(--foreground) !important;
+}
+
+.text-slate-700, .text-slate-600 {
+  color: var(--muted) !important;
+}
+
+.dark .text-slate-500, .dark .text-slate-400 {
+  color: #7e93ad !important;
+}
+
+.dark .placeholder-slate-400::placeholder {
+  color: #5e7591 !important;
+}
+
+/* Cards / panels with a glass background should also pick up the radius + shadow language */
+.rounded-xl.bg-white, .rounded-2xl.bg-white {
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.06);
+}
+
+.dark .rounded-xl.bg-white, .dark .rounded-2xl.bg-white {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------------------------------------------------------------- */
+/* Scrollbar polish (sidebar etc.)                                    */
+/* ---------------------------------------------------------------- */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--surface-border);
+  border-radius: 999px;
 }

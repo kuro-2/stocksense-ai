@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Navbar } from '@/components/layout/Navbar';
 import { FnOStrategyBuilder } from '@/components/stock/FnOStrategyBuilder';
 
 export default function StrategyBuilderPage() {
@@ -30,12 +29,10 @@ export default function StrategyBuilderPage() {
   }, [symbol]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
-      <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 mb-4 transition-colors"
+          className="flex items-center gap-2 text-sm text-(--muted) hover:text-(--foreground) mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
@@ -43,7 +40,7 @@ export default function StrategyBuilderPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            <Loader2 className="w-8 h-8 animate-spin text-emerald" />
           </div>
         )}
 
@@ -54,7 +51,6 @@ export default function StrategyBuilderPage() {
         {!loading && spot !== null && (
           <FnOStrategyBuilder symbol={symbol} spot={spot} />
         )}
-      </div>
     </div>
   );
 }

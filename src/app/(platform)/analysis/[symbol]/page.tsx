@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, RefreshCw, Loader2 } from 'lucide-react';
-import { Navbar } from '@/components/layout/Navbar';
 import { RecommendationCard } from '@/components/stock/RecommendationCard';
 import { TechnicalPanel } from '@/components/stock/TechnicalPanel';
 import { FnOPanel } from '@/components/stock/FnOPanel';
@@ -102,23 +101,21 @@ export default function AnalysisPage() {
   }, [runAnalysis]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
-      <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-4xl mx-auto">
         {/* Back button */}
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 mb-4 transition-colors"
+          className="flex items-center gap-2 text-sm text-(--muted) hover:text-(--foreground) mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
 
         {/* Stock header */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <h1 className="text-2xl font-bold text-slate-900">
+              <h1 className="font-display text-2xl font-bold text-(--foreground)">
                 {analysis?.stockName ?? symbol}
               </h1>
               <Badge variant="info">{symbol}</Badge>
@@ -132,7 +129,7 @@ export default function AnalysisPage() {
             </div>
             {analysis && (
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-slate-900">
+                <span className="text-3xl font-bold text-(--foreground)">
                   {formatINR(analysis.currentPrice)}
                 </span>
                 <span className={`text-lg font-semibold ${analysis.changeDirection === 'up' ? 'text-green-600' : 'text-red-600'}`}>
@@ -144,7 +141,7 @@ export default function AnalysisPage() {
           <button
             onClick={runAnalysis}
             disabled={loading}
-            className="flex items-center gap-2 text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 text-sm bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Re-analyze
@@ -155,7 +152,7 @@ export default function AnalysisPage() {
         {loading && (
           <div className="space-y-4">
             <div className="text-center py-6">
-              <div className="inline-flex items-center gap-3 bg-blue-50 border border-blue-200 text-blue-700 px-5 py-3 rounded-xl">
+              <div className="inline-flex items-center gap-3 glass-card text-emerald px-5 py-3 rounded-xl">
                 <RefreshCw className="w-5 h-5 animate-spin" />
                 <span className="text-sm font-medium">{loadingMsg}</span>
               </div>
@@ -186,17 +183,17 @@ export default function AnalysisPage() {
 
             {/* Summary & reasoning */}
             <Card>
-              <h3 className="font-semibold text-slate-900 mb-2">AI Analysis</h3>
-              <p className="text-slate-700 text-sm leading-relaxed mb-3">{analysis.summary}</p>
-              <p className="text-slate-600 text-sm leading-relaxed">{analysis.reasoning}</p>
+              <h3 className="font-semibold text-(--foreground) mb-2">AI Analysis</h3>
+              <p className="text-(--foreground) text-sm leading-relaxed mb-3">{analysis.summary}</p>
+              <p className="text-(--muted) text-sm leading-relaxed">{analysis.reasoning}</p>
             </Card>
 
             {/* Chart */}
             {chartData.length > 0 && (
               <Card className="p-3">
-                <h3 className="font-semibold text-slate-900 mb-3 px-1">Price Chart (3 months)</h3>
+                <h3 className="font-semibold text-(--foreground) mb-3 px-1">Price Chart (3 months)</h3>
                 <PriceChart data={chartData} support={analysis.support} resistance={analysis.resistance} />
-                <div className="flex gap-4 mt-2 px-1 text-xs text-slate-500">
+                <div className="flex gap-4 mt-2 px-1 text-xs text-(--muted)">
                   <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-green-500 inline-block rounded" /> Support ₹{analysis.support}</span>
                   <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-red-500 inline-block rounded" /> Resistance ₹{analysis.resistance}</span>
                 </div>
@@ -213,17 +210,17 @@ export default function AnalysisPage() {
               <Card>
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <div>
-                    <h3 className="font-semibold text-slate-900">Option Chain</h3>
+                    <h3 className="font-semibold text-(--foreground)">Option Chain</h3>
                     {optionChainError ? (
                       <p className="text-sm text-red-600 mt-1">{optionChainError}</p>
                     ) : (
-                      <p className="text-sm text-slate-500 mt-1">View live CE/PE open interest, PCR, and max pain for the nearest expiry.</p>
+                      <p className="text-sm text-(--muted) mt-1">View live CE/PE open interest, PCR, and max pain for the nearest expiry.</p>
                     )}
                   </div>
                   <button
                     onClick={loadOptionChain}
                     disabled={optionChainLoading}
-                    className="flex items-center gap-2 text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-2 text-sm bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
                   >
                     {optionChainLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                     {optionChainError ? 'Retry' : 'Load Option Chain'}
@@ -236,7 +233,6 @@ export default function AnalysisPage() {
             <Disclaimer />
           </div>
         )}
-      </div>
     </div>
   );
 }
