@@ -18,20 +18,8 @@ model User {
   watchlist   WatchlistItem[]
   portfolio   Portfolio?
   alerts      PriceAlert[]
-  sessions    UserSession[]
 
   @@map("users")
-}
-
-model UserSession {
-  id        String   @id @default(uuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("user_sessions")
 }
 
 model StockCache {
@@ -143,6 +131,8 @@ model Trade {
   strikePrice    Float?
   expiry         String?
   lotSize        Int?
+
+  realizedPnLForTrade Float?
 
   portfolio      Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
 

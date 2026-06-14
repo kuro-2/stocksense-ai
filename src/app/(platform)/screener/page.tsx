@@ -17,11 +17,19 @@ interface ScreenerResult {
   sma200: number;
   trend: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
   sector: string;
+  marketCap: 'LARGE_CAP' | 'MID_CAP' | 'SMALL_CAP';
   recommendation: keyof typeof RECO_CONFIG | null;
   confidence: string | null;
 }
 
 const TREND_OPTIONS = ['ANY', 'BULLISH', 'BEARISH', 'NEUTRAL'] as const;
+const MARKET_CAP_OPTIONS = ['ANY', 'LARGE_CAP', 'MID_CAP', 'SMALL_CAP'] as const;
+const MARKET_CAP_LABELS: Record<typeof MARKET_CAP_OPTIONS[number], string> = {
+  ANY: 'Any',
+  LARGE_CAP: 'Large Cap',
+  MID_CAP: 'Mid Cap',
+  SMALL_CAP: 'Small Cap',
+};
 
 export default function ScreenerPage() {
   const [results, setResults] = useState<ScreenerResult[]>([]);
@@ -33,6 +41,7 @@ export default function ScreenerPage() {
   const [rsiMax, setRsiMax] = useState('');
   const [trend, setTrend] = useState<typeof TREND_OPTIONS[number]>('ANY');
   const [aboveSma200, setAboveSma200] = useState(false);
+  const [marketCap, setMarketCap] = useState<typeof MARKET_CAP_OPTIONS[number]>('ANY');
 
   async function runScreener() {
     setLoading(true);
@@ -43,6 +52,7 @@ export default function ScreenerPage() {
       if (rsiMax !== '') body.rsiMax = Number(rsiMax);
       if (trend !== 'ANY') body.trend = trend;
       if (aboveSma200) body.aboveSma200 = true;
+      if (marketCap !== 'ANY') body.marketCap = marketCap;
 
       const res = await fetch('/api/screener', {
         method: 'POST',
@@ -99,6 +109,15 @@ export default function ScreenerPage() {
               {TREND_OPTIONS.map(t => <option key={t} value={t}>{t === 'ANY' ? 'Any' : t}</option>)}
             </select>
           </div>
+          <div>
+            <label className="block text-xs font-medium text-(--muted) mb-1">Market Cap</label>
+            <select
+              value={marketCap} onChange={e => setMarketCap(e.target.value as typeof MARKET_CAP_OPTIONS[number])}
+              className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm bg-transparent focus:outline-none focus:border-emerald"
+            >
+              {MARKET_CAP_OPTIONS.map(c => <option key={c} value={c}>{MARKET_CAP_LABELS[c]}</option>)}
+            </select>
+          </div>
           <label className="flex items-center gap-2 text-sm text-(--muted) pb-2">
             <input type="checkbox" checked={aboveSma200} onChange={e => setAboveSma200(e.target.checked)} className="rounded" />
             Above 200-day SMA
@@ -140,6 +159,7 @@ export default function ScreenerPage() {
                       <th className="text-right px-4 py-3 font-medium text-slate-500">Price</th>
                       <th className="text-right px-4 py-3 font-medium text-slate-500">Change</th>
                       <th className="text-right px-4 py-3 font-medium text-slate-500">RSI</th>
+                      <th className="text-center px-4 py-3 font-medium text-slate-500">Market Cap</th>
                       <th className="text-center px-4 py-3 font-medium text-slate-500">Trend</th>
                       <th className="text-right px-4 py-3 font-medium text-slate-500">Recommendation</th>
                     </tr>
@@ -162,6 +182,9 @@ export default function ScreenerPage() {
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right font-mono text-slate-700">{r.rsi.toFixed(1)}</td>
+                          <td className="px-4 py-3 text-center">
+                            <Badge variant="neutral">{r.marketCap.replace('_', ' ')}</Badge>
+                          </td>
                           <td className="px-4 py-3 text-center">
                             <Badge variant={r.trend === 'BULLISH' ? 'success' : r.trend === 'BEARISH' ? 'danger' : 'neutral'}>
                               {r.trend}

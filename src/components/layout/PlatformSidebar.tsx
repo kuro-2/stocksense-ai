@@ -5,17 +5,19 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Star, Wallet, Globe2, SlidersHorizontal,
-  Bell, FlaskConical, LineChart, ChevronsLeft, ChevronsRight, X,
+  Bell, FlaskConical, LineChart, ChevronsLeft, ChevronsRight, X, GitCompare, Rocket,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, match: (p: string) => p === '/dashboard' },
   { href: '/analysis', label: 'Analysis', icon: LineChart, match: (p: string) => p.startsWith('/analysis') },
+  { href: '/compare', label: 'Compare', icon: GitCompare, match: (p: string) => p.startsWith('/compare') },
   { href: '/watchlist', label: 'Watchlist', icon: Star, match: (p: string) => p.startsWith('/watchlist') },
   { href: '/portfolio', label: 'Portfolio', icon: Wallet, match: (p: string) => p.startsWith('/portfolio') },
   { href: '/markets', label: 'Markets', icon: Globe2, match: (p: string) => p.startsWith('/markets') },
   { href: '/screener', label: 'Screener', icon: SlidersHorizontal, match: (p: string) => p.startsWith('/screener') },
+  { href: '/ipo', label: 'IPO Tracker', icon: Rocket, match: (p: string) => p.startsWith('/ipo') },
   { href: '/alerts', label: 'Alerts', icon: Bell, match: (p: string) => p.startsWith('/alerts') },
   { href: '/backtest', label: 'Backtest', icon: FlaskConical, match: (p: string) => p.startsWith('/backtest') },
 ];

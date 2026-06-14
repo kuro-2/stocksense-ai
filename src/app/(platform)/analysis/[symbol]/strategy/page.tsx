@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { FnOStrategyBuilder } from '@/components/stock/FnOStrategyBuilder';
+import type { OptionChainResult } from '@/lib/nse';
 
 export default function StrategyBuilderPage() {
   const params = useParams();
@@ -10,16 +11,24 @@ export default function StrategyBuilderPage() {
   const symbol = String(params.symbol).toUpperCase();
 
   const [spot, setSpot] = useState<number | null>(null);
+  const [optionChain, setOptionChain] = useState<OptionChainResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`/api/stock/${symbol}/quote`);
-        if (!res.ok) throw new Error('Failed to load quote');
-        const data = await res.json();
+        const [quoteRes, optionsRes] = await Promise.all([
+          fetch(`/api/stock/${symbol}/quote`),
+          fetch(`/api/stock/${symbol}/options`),
+        ]);
+        if (!quoteRes.ok) throw new Error('Failed to load quote');
+        const data = await quoteRes.json();
         setSpot(data.currentPrice);
+
+        if (optionsRes.ok) {
+          setOptionChain(await optionsRes.json());
+        }
       } catch {
         setError('Could not load the current price for this symbol.');
       } finally {
@@ -49,7 +58,7 @@ export default function StrategyBuilderPage() {
         )}
 
         {!loading && spot !== null && (
-          <FnOStrategyBuilder symbol={symbol} spot={spot} />
+          <FnOStrategyBuilder symbol={symbol} spot={spot} optionChain={optionChain} />
         )}
     </div>
   );

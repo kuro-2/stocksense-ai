@@ -3,6 +3,7 @@ export interface Position {
   stockName: string;
   exchange: string;
   instrumentType: string;
+  sector: string;
   quantity: number;
   averageCost: number;
   currentPrice: number;
@@ -35,6 +36,10 @@ export interface PortfolioSummary {
   dayPnL: number;
   dayPnLPercent: number;
   positions: Position[];
+  sectorAllocation: Record<string, number>;
+  totalRealizedPnL: number;
+  winRate: number | null;
+  totalSellTrades: number;
 }
 
 export interface TradeInput {

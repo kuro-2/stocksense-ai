@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
@@ -9,6 +9,7 @@ const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-displ
 export const metadata: Metadata = {
   title: 'StockSense AI — Indian Stock Market Analysis',
   description: 'AI-powered investment analysis for NSE/BSE stocks. Get buy/sell recommendations, technical analysis, and F&O strategies.',
+  manifest: '/manifest.webmanifest',
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -16,6 +17,12 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: '/favicon-180.png', sizes: '180x180', type: 'image/png' }],
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#19b98a',
 };
 
 const THEME_INIT_SCRIPT = `

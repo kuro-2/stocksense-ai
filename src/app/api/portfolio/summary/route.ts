@@ -40,6 +40,7 @@ export async function GET() {
             stockName: pos.stockName,
             exchange: pos.exchange,
             instrumentType: pos.instrumentType,
+            sector: (quote?.sector ?? 'Unknown') as string,
             quantity: pos.quantity,
             averageCost: pos.averageCost,
             currentPrice,
@@ -54,6 +55,7 @@ export async function GET() {
             stockName: pos.stockName,
             exchange: pos.exchange,
             instrumentType: pos.instrumentType,
+            sector: 'Unknown',
             quantity: pos.quantity,
             averageCost: pos.averageCost,
             currentPrice: pos.currentPrice,
@@ -71,6 +73,21 @@ export async function GET() {
     const totalPnL = currentValue - totalInvested;
     const totalPnLPercent = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
 
+    const sectorAllocation: Record<string, number> = {};
+    for (const p of positions) {
+      sectorAllocation[p.sector] = (sectorAllocation[p.sector] ?? 0) + p.currentValue;
+    }
+
+    // Closed-trade analytics from sell trades with recorded realized P&L
+    const sellTrades = await prisma.trade.findMany({
+      where: { portfolioId: portfolio.id, tradeType: 'SELL', realizedPnLForTrade: { not: null } },
+      select: { realizedPnLForTrade: true },
+    });
+    const totalSellTrades = sellTrades.length;
+    const totalRealizedPnL = sellTrades.reduce((s, t) => s + (t.realizedPnLForTrade ?? 0), 0);
+    const winningTrades = sellTrades.filter(t => (t.realizedPnLForTrade ?? 0) > 0).length;
+    const winRate = totalSellTrades > 0 ? (winningTrades / totalSellTrades) * 100 : null;
+
     return NextResponse.json({
       portfolioId: portfolio.id,
       virtualCash: portfolio.virtualCash,
@@ -81,6 +98,10 @@ export async function GET() {
       dayPnL: 0,
       dayPnLPercent: 0,
       positions,
+      sectorAllocation,
+      totalRealizedPnL,
+      winRate,
+      totalSellTrades,
     });
   } catch (error) {
     console.error('Portfolio summary error:', error);

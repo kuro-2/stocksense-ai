@@ -49,7 +49,7 @@ export default function PrivacyPolicyPage() {
       <h2>5. Third-Party Services</h2>
       <p>
         We use third-party services to operate StockSense AI, including Supabase (authentication &amp;
-        database), Claude AI / Google Gemini (AI analysis generation), and Yahoo Finance (live market data).
+        database), Google Gemini (AI analysis generation), and Yahoo Finance (live market data).
         These providers may process limited technical data as part of delivering their service to us, under
         their own privacy policies.
       </p>

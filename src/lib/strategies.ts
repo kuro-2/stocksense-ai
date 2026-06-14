@@ -1,3 +1,5 @@
+import type { OptionChainStrike } from '@/lib/nse';
+
 export type LegType = 'CE' | 'PE';
 export type LegPosition = 'BUY' | 'SELL';
 
@@ -118,17 +120,46 @@ export function computePayoff(legs: Leg[], priceRange: number[], lotSize: number
   const maxLoss = Math.min(...pnls);
 
   const breakevens: number[] = [];
-  for (let i = 1; i < points.length; i++) {
-    const prev = points[i - 1];
+  for (let i = 0; i < points.length; i++) {
     const curr = points[i];
-    if ((prev.pnl < 0 && curr.pnl >= 0) || (prev.pnl > 0 && curr.pnl <= 0)) {
+    if (curr.pnl === 0) {
+      // Only the edges of a zero-pnl plateau are breakevens (common when premium is 0,
+      // e.g. an unfilled Long Call/Put leg has pnl === 0 across a whole price range).
+      const prevNonZero = i > 0 && points[i - 1].pnl !== 0;
+      const nextNonZero = i < points.length - 1 && points[i + 1].pnl !== 0;
+      if (prevNonZero || nextNonZero) breakevens.push(curr.price);
+      continue;
+    }
+    if (i === 0) continue;
+    const prev = points[i - 1];
+    if ((prev.pnl < 0 && curr.pnl > 0) || (prev.pnl > 0 && curr.pnl < 0)) {
       // Linear interpolation between the two points
       const ratio = Math.abs(prev.pnl) / (Math.abs(prev.pnl) + Math.abs(curr.pnl));
       breakevens.push(Math.round(prev.price + ratio * (curr.price - prev.price)));
     }
   }
 
-  return { points, maxProfit, maxLoss, breakevens };
+  const uniqueBreakevens = [...new Set(breakevens)].sort((a, b) => a - b);
+
+  return { points, maxProfit, maxLoss, breakevens: uniqueBreakevens };
+}
+
+/** Finds the live premium (LTP) for a given strike/type from a live option chain, using the nearest available strike if there's no exact match. Returns 0 if no chain data is available. */
+export function findPremium(strikes: OptionChainStrike[] | undefined, strike: number, type: LegType): number {
+  if (!strikes || strikes.length === 0) return 0;
+
+  let closest = strikes[0];
+  let closestDiff = Math.abs(closest.strikePrice - strike);
+  for (const s of strikes) {
+    const diff = Math.abs(s.strikePrice - strike);
+    if (diff < closestDiff) {
+      closest = s;
+      closestDiff = diff;
+    }
+  }
+
+  const side = type === 'CE' ? closest.ce : closest.pe;
+  return side ? side.ltp : 0;
 }
 
 export function generatePriceRange(spot: number, step: number, steps = 20): number[] {

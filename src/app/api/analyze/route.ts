@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getQuote, getHistory } from '@/lib/yahoo-finance';
 import { calculateRSI, calculateSMA, findSupportResistance, getRSIInterpretation } from '@/lib/technical';
-import { analyzeStock, getLiveNews } from '@/lib/gemini';
+import { analyzeStock, getLiveNews, getMutualFundEstimate } from '@/lib/gemini';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
 import { isIndexSymbol, getMarketSymbolInfo } from '@/lib/markets';
-import type { AnalysisResult } from '@/types/stock';
+import { getFnoMarketContext, preFilterFnoStrategy, finalizeFnoRecommendation } from '@/lib/fno';
+import type { AnalysisResult, Trend } from '@/types/stock';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -21,9 +22,12 @@ export async function POST(req: NextRequest) {
 
     const symbol = (inputSymbol || query).toUpperCase().replace(/\s+/g, '').replace('.NS', '').replace('.BO', '');
 
-    const [quote, history] = await Promise.all([
+    const isIndex = isIndexSymbol(symbol);
+
+    const [quote, history, fnoContext] = await Promise.all([
       getQuote(symbol),
       getHistory(symbol, '3mo'),
+      getFnoMarketContext(symbol, isIndex),
     ]);
 
     if (!quote || !quote.regularMarketPrice) {
@@ -41,13 +45,26 @@ export async function POST(req: NextRequest) {
     const sma200 = calculateSMA(closes, 200);
     const { support, resistance } = findSupportResistance(ohlcv);
 
-    const isIndex = isIndexSymbol(symbol);
     const marketInfo = getMarketSymbolInfo(symbol);
 
     const mktCap = quote.marketCap ?? 0;
     const marketCapCategory = isIndex ? null :
       mktCap > 200_000_000_000 ? 'LARGE_CAP' :
       mktCap > 50_000_000_000 ? 'MID_CAP' : 'SMALL_CAP';
+
+    // Deterministic technical trend (independent of the AI's own "trend" verdict)
+    // used to bound the F&O strategies the AI is allowed to suggest.
+    const technicalTrend: Trend =
+      quote.regularMarketPrice > sma50 && sma50 >= sma200 ? 'BULLISH' :
+      quote.regularMarketPrice < sma50 && sma50 <= sma200 ? 'BEARISH' :
+      'NEUTRAL';
+
+    const fnoPreFilter = preFilterFnoStrategy({
+      hasFnO: fnoContext.hasFnO,
+      technicalTrend,
+      rsi,
+      indiaVix: fnoContext.indiaVix,
+    });
 
     const analysisInput = {
       stockName: isIndex ? (marketInfo?.name ?? symbol) : (quote.longName ?? quote.shortName ?? symbol),
@@ -67,6 +84,17 @@ export async function POST(req: NextRequest) {
       sma200,
       sector: isIndex ? 'Index' : (quote.sector ?? 'Unknown'),
       isIndex,
+      fno: {
+        hasFnO: fnoContext.hasFnO,
+        allowedStrategies: fnoPreFilter.allowedStrategies,
+        candidateStrategy: fnoPreFilter.candidateStrategy,
+        ruleReason: fnoPreFilter.reason,
+        indiaVix: fnoContext.indiaVix,
+        atmIV: fnoContext.atmIV,
+        pcr: fnoContext.optionChain?.pcr ?? null,
+        maxPain: fnoContext.optionChain?.maxPain ?? null,
+        nearestExpiry: fnoContext.optionChain?.expiryDate ?? null,
+      },
     };
 
     // Reuse a recent AI verdict for this symbol to avoid burning the Gemini
@@ -83,15 +111,39 @@ export async function POST(req: NextRequest) {
       : await analyzeStock(analysisInput);
     const user = await getAuthUser();
 
+    // Post-process the AI's F&O suggestion: enforce the rule-based bounds,
+    // cross-check against the equity recommendation, and substitute real
+    // strike/expiry data from the live NSE option chain where available.
+    const fnoFinal = finalizeFnoRecommendation({
+      aiFoStrategy: aiResult.foStrategy ?? 'AVOID_FO',
+      aiFoStrike: aiResult.foStrike ?? null,
+      aiFoExpiry: aiResult.foExpiry ?? null,
+      aiFoTips: aiResult.foTips ?? '',
+      recommendation: aiResult.recommendation ?? 'HOLD',
+      fnoContext,
+      preFilter: fnoPreFilter,
+    });
+
     let newsHighlights = aiResult.newsHighlights ?? [];
     let newsSource: 'live' | 'ai' = 'ai';
+    let mutualFundEstimate: Awaited<ReturnType<typeof getMutualFundEstimate>> = null;
     if (cached) {
       newsHighlights = cached.newsHighlights;
+      const cachedRaw = cached.rawAiResponse as Partial<AnalysisResult> | null;
+      mutualFundEstimate = cachedRaw?.mutualFundEstimate ?? null;
     } else {
-      const liveNews = await getLiveNews(analysisInput.stockName, symbol);
-      if (liveNews && liveNews.length > 0) {
-        newsHighlights = liveNews;
+      const [liveNewsResult, mfEstimateResult] = await Promise.allSettled([
+        getLiveNews(analysisInput.stockName, symbol),
+        isIndex ? Promise.resolve(null) : getMutualFundEstimate(analysisInput.stockName, symbol),
+      ]);
+
+      if (liveNewsResult.status === 'fulfilled' && liveNewsResult.value && liveNewsResult.value.length > 0) {
+        newsHighlights = liveNewsResult.value;
         newsSource = 'live';
+      }
+
+      if (mfEstimateResult.status === 'fulfilled' && mfEstimateResult.value) {
+        mutualFundEstimate = mfEstimateResult.value;
       }
     }
 
@@ -110,6 +162,18 @@ export async function POST(req: NextRequest) {
       sma200,
       newsHighlights,
       newsSource,
+      foStrategy: fnoFinal.foStrategy,
+      foStrike: fnoFinal.foStrike,
+      foExpiry: fnoFinal.foExpiry,
+      foTips: fnoFinal.foTips,
+      foDataSource: fnoFinal.foDataSource,
+      thetaWarning: fnoFinal.thetaWarning,
+      indiaVix: fnoContext.indiaVix,
+      pcr: fnoContext.optionChain?.pcr ?? null,
+      maxPain: fnoContext.optionChain?.maxPain ?? null,
+      atmIV: fnoContext.atmIV,
+      mutualFundEstimate,
+      mfDataSource: mutualFundEstimate ? ('AI_ESTIMATE' as const) : undefined,
       generatedAt: new Date().toISOString(),
     };
 
@@ -142,7 +206,7 @@ export async function POST(req: NextRequest) {
             foExpiry: fullResult.foExpiry ?? null,
             foStrike: fullResult.foStrike ?? null,
             newsHighlights: fullResult.newsHighlights ?? [],
-            rawAiResponse: aiResult,
+            rawAiResponse: { ...aiResult, mutualFundEstimate } as never,
           },
         })).id;
 
@@ -151,7 +215,7 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     console.error('Analysis error:', error);
     const msg = error instanceof Error ? error.message : '';
-    if (msg.includes('Not Found') || msg.includes('No fundamentals') || msg.includes('404')) {
+    if (msg.includes('Not Found') || msg.includes('No fundamentals') || msg.includes('404') || msg.includes('No data found') || msg.includes('delisted')) {
       return NextResponse.json({ error: 'Stock not found', code: 'STOCK_NOT_FOUND' }, { status: 404 });
     }
     return NextResponse.json({ error: 'Analysis failed, please retry', code: 'AI_FAILED' }, { status: 500 });

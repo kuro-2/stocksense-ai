@@ -7,6 +7,9 @@ import { TechnicalPanel } from '@/components/stock/TechnicalPanel';
 import { FnOPanel } from '@/components/stock/FnOPanel';
 import { NewsPanel } from '@/components/stock/NewsPanel';
 import { RiskPanel } from '@/components/stock/RiskPanel';
+import { CommunitySentiment } from '@/components/stock/CommunitySentiment';
+import { MutualFundEstimateCard } from '@/components/stock/MutualFundEstimateCard';
+import { ChatPanel } from '@/components/stock/ChatPanel';
 import { PriceChart } from '@/components/stock/PriceChart';
 import { Disclaimer } from '@/components/layout/Disclaimer';
 import { AnalysisSkeleton } from '@/components/ui/Skeleton';
@@ -230,6 +233,9 @@ export default function AnalysisPage() {
             )}
             <NewsPanel highlights={analysis.newsHighlights} source={analysis.newsSource} />
             <RiskPanel risks={analysis.risks} />
+            <MutualFundEstimateCard analysis={analysis} />
+            <CommunitySentiment symbol={analysis.symbol} />
+            <ChatPanel analysis={analysis} />
             <Disclaimer />
           </div>
         )}

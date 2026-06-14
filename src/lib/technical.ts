@@ -46,18 +46,6 @@ export function calculateEMA(data: number[], period: number): number {
   return Math.round(ema * 100) / 100;
 }
 
-export function calculateMACD(closes: number[]): { macd: number; signal: number; histogram: number } {
-  const ema12 = calculateEMA(closes, 12);
-  const ema26 = calculateEMA(closes, 26);
-  const macd = ema12 - ema26;
-  const signal = macd * 0.2 + macd * 0.8; // simplified
-  return {
-    macd: Math.round(macd * 100) / 100,
-    signal: Math.round(signal * 100) / 100,
-    histogram: Math.round((macd - signal) * 100) / 100,
-  };
-}
-
 export function calculateBollingerBands(closes: number[], period = 20): { upper: number; middle: number; lower: number } {
   const middle = calculateSMA(closes, period);
   const slice = closes.slice(-period);

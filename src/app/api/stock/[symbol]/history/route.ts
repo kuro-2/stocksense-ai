@@ -25,7 +25,7 @@ export async function GET(
   } catch (error) {
     console.error(`History error for ${cleanSymbol}:`, error);
     const msg = error instanceof Error ? error.message : '';
-    if (msg.includes('Not Found') || msg.includes('No fundamentals') || msg.includes('404')) {
+    if (msg.includes('Not Found') || msg.includes('No fundamentals') || msg.includes('404') || msg.includes('No data found') || msg.includes('delisted')) {
       return NextResponse.json({ error: 'Stock not found', code: 'STOCK_NOT_FOUND' }, { status: 404 });
     }
     return NextResponse.json({ error: 'Failed to fetch history', code: 'SERVER_ERROR' }, { status: 500 });

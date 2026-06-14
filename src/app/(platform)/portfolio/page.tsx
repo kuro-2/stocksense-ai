@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Loader2, TrendingUp } from 'lucide-react';
+import { Plus, Loader2, TrendingUp, PieChart } from 'lucide-react';
 import { formatINR, formatPercent } from '@/lib/utils';
+import { SectorAllocationChart } from '@/components/portfolio/SectorAllocationChart';
 import type { PortfolioSummary, TradeInput } from '@/types/portfolio';
 
 export default function PortfolioPage() {
@@ -22,6 +23,7 @@ export default function PortfolioPage() {
     try {
       const res = await fetch('/api/portfolio/summary');
       if (res.status === 401) { setUnauthorized(true); return; }
+      if (!res.ok) return;
       const data = await res.json();
       setSummary(data);
     } catch {
@@ -225,6 +227,35 @@ export default function PortfolioPage() {
                 <p className="text-sm mt-1">Execute a paper trade to get started. You have {formatINR(summary.virtualCash)} virtual cash.</p>
               </div>
             )}
+
+            {/* Portfolio Analytics */}
+            <div className="glass-card rounded-xl p-4 mb-5">
+              <h3 className="font-semibold text-(--foreground) mb-4 flex items-center gap-2">
+                <PieChart className="w-4 h-4 text-emerald" />
+                Portfolio Analytics
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <SectorAllocationChart sectorAllocation={summary.sectorAllocation} />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 content-start">
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                    <p className="text-xs text-slate-500 mb-1">Total Realized P&amp;L</p>
+                    <p className={`text-lg font-bold ${pnlColor(summary.totalRealizedPnL)}`}>
+                      {summary.totalRealizedPnL >= 0 ? '+' : ''}{formatINR(summary.totalRealizedPnL)}
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                    <p className="text-xs text-slate-500 mb-1">Win Rate</p>
+                    <p className="text-lg font-bold text-(--foreground)">
+                      {summary.winRate === null ? 'N/A' : `${summary.winRate.toFixed(0)}%`}
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                    <p className="text-xs text-slate-500 mb-1">Closed Trades</p>
+                    <p className="text-lg font-bold text-(--foreground)">{summary.totalSellTrades}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </>
         )}
 

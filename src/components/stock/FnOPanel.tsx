@@ -16,13 +16,52 @@ const FO_STRATEGY_LABELS: Record<string, string> = {
 };
 
 export function FnOPanel({ analysis }: FnOPanelProps) {
+  const hasMarketData = analysis.indiaVix != null || analysis.pcr != null || analysis.maxPain != null || analysis.atmIV != null;
+
   return (
     <Card>
-      <h3 className="font-semibold text-slate-900 mb-3">F&O Strategy</h3>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h3 className="font-semibold text-slate-900">F&O Strategy</h3>
+        {analysis.foDataSource === 'NSE_LIVE' && (
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+            Live NSE option chain
+          </span>
+        )}
+      </div>
       <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-2 text-sm text-amber-800">
         <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
         <p>F&O trading carries very high risk. You can lose your entire investment. Only trade F&O if you fully understand the risks and can afford to lose the money.</p>
       </div>
+
+      {hasMarketData && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+          {analysis.indiaVix != null && (
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 text-center">
+              <p className="text-[11px] text-slate-500">India VIX</p>
+              <p className="text-sm font-semibold text-slate-900">{analysis.indiaVix}</p>
+            </div>
+          )}
+          {analysis.atmIV != null && (
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 text-center">
+              <p className="text-[11px] text-slate-500">ATM IV</p>
+              <p className="text-sm font-semibold text-slate-900">{analysis.atmIV}%</p>
+            </div>
+          )}
+          {analysis.pcr != null && (
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 text-center">
+              <p className="text-[11px] text-slate-500">PCR</p>
+              <p className="text-sm font-semibold text-slate-900">{analysis.pcr}</p>
+            </div>
+          )}
+          {analysis.maxPain != null && (
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 text-center">
+              <p className="text-[11px] text-slate-500">Max Pain</p>
+              <p className="text-sm font-semibold text-slate-900">₹{analysis.maxPain}</p>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <span className="text-sm text-slate-500">Strategy:</span>
@@ -48,6 +87,12 @@ export function FnOPanel({ analysis }: FnOPanelProps) {
         )}
         {analysis.foTips && (
           <p className="text-sm text-slate-700 mt-2 p-3 bg-slate-50 rounded-lg">{analysis.foTips}</p>
+        )}
+        {analysis.thetaWarning && (
+          <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-2 text-sm text-amber-800">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <p>{analysis.thetaWarning}</p>
+          </div>
         )}
         <Link
           href={`/analysis/${analysis.symbol}/strategy`}

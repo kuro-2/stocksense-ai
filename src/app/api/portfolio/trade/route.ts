@@ -33,6 +33,15 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
+    // Look up the existing position first so we can record realized P&L on the trade itself
+    const existingPosition = await prisma.position.findUnique({
+      where: { portfolioId_symbol_instrumentType: { portfolioId: portfolio.id, symbol: symbol.toUpperCase(), instrumentType } },
+    });
+
+    const realizedPnLForTrade = (tradeType === 'SELL' && existingPosition)
+      ? (price - existingPosition.averageCost) * quantity
+      : null;
+
     // Record trade
     const trade = await prisma.trade.create({
       data: {
@@ -45,6 +54,7 @@ export async function POST(req: NextRequest) {
         price,
         totalValue,
         notes,
+        realizedPnLForTrade,
       },
     });
 
@@ -53,11 +63,6 @@ export async function POST(req: NextRequest) {
     await prisma.portfolio.update({
       where: { id: portfolio.id },
       data: { virtualCash: { increment: cashDelta } },
-    });
-
-    // Upsert position
-    const existingPosition = await prisma.position.findUnique({
-      where: { portfolioId_symbol_instrumentType: { portfolioId: portfolio.id, symbol: symbol.toUpperCase(), instrumentType } },
     });
 
     if (tradeType === 'BUY') {
@@ -92,14 +97,13 @@ export async function POST(req: NextRequest) {
       if (newQty <= 0) {
         await prisma.position.delete({ where: { id: existingPosition.id } });
       } else {
-        const realizedPnL = (price - existingPosition.averageCost) * quantity;
         await prisma.position.update({
           where: { id: existingPosition.id },
           data: {
             quantity: newQty,
             currentPrice: price,
             unrealizedPnL: (price - existingPosition.averageCost) * newQty,
-            realizedPnL: { increment: realizedPnL },
+            realizedPnL: { increment: realizedPnLForTrade ?? 0 },
           },
         });
       }

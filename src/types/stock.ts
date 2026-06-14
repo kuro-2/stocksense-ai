@@ -25,6 +25,12 @@ export interface AnalysisResult {
   foTips: string;
   foExpiry: string | null;
   foStrike: number | null;
+  foDataSource?: 'NSE_LIVE' | 'AI_ESTIMATE';
+  thetaWarning?: string | null;
+  indiaVix?: number | null;
+  pcr?: number | null;
+  maxPain?: number | null;
+  atmIV?: number | null;
   risks: string[];
   newsHighlights: string[];
   newsSource?: 'live' | 'ai';
@@ -36,6 +42,11 @@ export interface AnalysisResult {
   sma20: number;
   sma50: number;
   sma200: number;
+  mutualFundEstimate?: {
+    trendDescription: string;
+    trendDirection: 'increasing' | 'decreasing' | 'stable' | 'unknown';
+  } | null;
+  mfDataSource?: 'AI_ESTIMATE';
   generatedAt: string;
 }
 

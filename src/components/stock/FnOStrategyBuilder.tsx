@@ -6,29 +6,45 @@ import {
 import { Card } from '@/components/ui/Card';
 import { formatINR } from '@/lib/utils';
 import {
-  STRATEGY_TEMPLATES, computePayoff, generatePriceRange, getStrikeStep,
+  STRATEGY_TEMPLATES, computePayoff, findPremium, generatePriceRange, getStrikeStep,
   type Leg,
 } from '@/lib/strategies';
+import type { OptionChainResult } from '@/lib/nse';
 
 interface FnOStrategyBuilderProps {
   symbol: string;
   spot: number;
+  optionChain: OptionChainResult | null;
 }
 
 const LOT_SIZE = 1;
 
-export function FnOStrategyBuilder({ symbol, spot }: FnOStrategyBuilderProps) {
+export function FnOStrategyBuilder({ symbol, spot, optionChain }: FnOStrategyBuilderProps) {
   const strikeStep = getStrikeStep(spot);
+
+  function withLivePremiums(rawLegs: Leg[]): Leg[] {
+    if (!optionChain) return rawLegs;
+    return rawLegs.map(leg => ({ ...leg, premium: findPremium(optionChain.strikes, leg.strike, leg.type) }));
+  }
+
   const [strategyKey, setStrategyKey] = useState('LONG_CALL');
-  const [legs, setLegs] = useState<Leg[]>(() => STRATEGY_TEMPLATES['LONG_CALL'].build(spot, strikeStep));
+  const [legs, setLegs] = useState<Leg[]>(() => withLivePremiums(STRATEGY_TEMPLATES['LONG_CALL'].build(spot, strikeStep)));
 
   function handleStrategyChange(key: string) {
     setStrategyKey(key);
-    setLegs(STRATEGY_TEMPLATES[key].build(spot, strikeStep));
+    setLegs(withLivePremiums(STRATEGY_TEMPLATES[key].build(spot, strikeStep)));
   }
 
   function updateLeg(index: number, field: keyof Leg, value: number) {
-    setLegs(prev => prev.map((leg, i) => (i === index ? { ...leg, [field]: value } : leg)));
+    setLegs(prev => prev.map((leg, i) => {
+      if (i !== index) return leg;
+      const updated = { ...leg, [field]: value };
+      // Re-fetch the live premium when the strike changes, so it still reflects real market pricing.
+      if (field === 'strike' && optionChain) {
+        updated.premium = findPremium(optionChain.strikes, value, leg.type);
+      }
+      return updated;
+    }));
   }
 
   const priceRange = useMemo(() => generatePriceRange(spot, strikeStep, 15), [spot, strikeStep]);
@@ -38,8 +54,24 @@ export function FnOStrategyBuilder({ symbol, spot }: FnOStrategyBuilderProps) {
 
   return (
     <Card>
-      <h3 className="font-semibold text-slate-900 mb-1">F&O Strategy Builder — {symbol}</h3>
-      <p className="text-sm text-slate-500 mb-4">Spot price: {formatINR(spot)}. All figures are illustrative — enter real premiums for accurate payoff.</p>
+      <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+        <h3 className="font-semibold text-slate-900">F&O Strategy Builder — {symbol}</h3>
+        {optionChain ? (
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+            Live NSE premiums · expiry {optionChain.expiryDate}
+          </span>
+        ) : (
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+            Live option chain unavailable
+          </span>
+        )}
+      </div>
+      <p className="text-sm text-slate-500 mb-4">
+        Spot price: {formatINR(spot)}.{' '}
+        {optionChain
+          ? 'Premiums below are pulled from the nearest-expiry NSE option chain (nearest available strike). Edit strike/qty to model your own trade.'
+          : 'Live premiums could not be loaded — premiums default to 0. Enter the real premium from your broker for an accurate payoff.'}
+      </p>
 
       <div className="mb-4">
         <label className="block text-xs font-medium text-slate-500 mb-1">Strategy</label>

@@ -1,7 +1,19 @@
 import { GoogleGenerativeAI, type GenerativeModel } from '@google/generative-ai';
-import type { AnalysisResult } from '@/types/stock';
+import type { AnalysisResult, FoStrategy } from '@/types/stock';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+
+interface FnoPromptContext {
+  hasFnO: boolean;
+  allowedStrategies: FoStrategy[];
+  candidateStrategy: FoStrategy;
+  ruleReason: string;
+  indiaVix: number | null;
+  atmIV: number | null;
+  pcr: number | null;
+  maxPain: number | null;
+  nearestExpiry: string | null;
+}
 
 interface AnalysisInput {
   stockName: string;
@@ -21,6 +33,7 @@ interface AnalysisInput {
   sma200: number;
   sector: string;
   isIndex?: boolean;
+  fno?: FnoPromptContext;
 }
 
 const SYSTEM_PROMPT = `You are an expert Indian stock market analyst
@@ -62,7 +75,13 @@ Guidelines:
 - stopLoss should be 5-8% below current price for BUY recommendations
 - Recommend AVOID_FO for volatile stocks, mid/small caps, or uncertain situations
 - Explain F&O tips in plain language, a beginner must understand it
-- Be honest about risks, do not oversell any stock`;
+- Be honest about risks, do not oversell any stock
+
+F&O RULES (when F&O market data is provided in the prompt):
+- foStrategy MUST be chosen from the "Allowed F&O strategies" list given in the prompt — AVOID_FO is always allowed
+- Use India VIX, ATM implied volatility, PCR and Max Pain to justify your choice and to write foTips
+- If "Allowed F&O strategies" is just AVOID_FO, you MUST set foStrategy to AVOID_FO, foStrike to null and foExpiry to null
+- Check your foStrategy against your own "recommendation" — a SELL/STRONG_SELL equity recommendation must not pair with a bullish F&O strategy (BUY_CALL/SELL_PUT), and a BUY/STRONG_BUY recommendation must not pair with a bearish F&O strategy (BUY_PUT/SELL_CALL)`;
 
 interface RetryInfo {
   '@type': string;
@@ -122,6 +141,27 @@ global cues, and macro factors rather than company fundamentals.`
     : `Based on your general knowledge of this company, recent earnings trends,
 and sector outlook, provide your full analysis.`;
 
+  const fno = input.fno;
+  const fnoSection = !fno
+    ? ''
+    : !fno.hasFnO
+    ? `
+
+F&O MARKET DATA: This symbol has no listed F&O contracts on the NSE.
+Allowed F&O strategies: AVOID_FO
+You MUST set foStrategy to "AVOID_FO", foStrike to null and foExpiry to null.`
+    : `
+
+F&O MARKET DATA (live NSE option chain, nearest expiry ${fno.nearestExpiry ?? 'N/A'}):
+India VIX: ${fno.indiaVix ?? 'N/A'}${fno.indiaVix !== null ? (fno.indiaVix >= 18 ? ' (elevated — favor premium-selling strategies)' : fno.indiaVix < 13 ? ' (low — option buying is relatively cheap)' : ' (normal)') : ''}
+At-the-money Implied Volatility: ${fno.atmIV ?? 'N/A'}%
+Put-Call Ratio (PCR): ${fno.pcr ?? 'N/A'}
+Max Pain: ${fno.maxPain !== null ? `₹${fno.maxPain}` : 'N/A'}
+Allowed F&O strategies: ${fno.allowedStrategies.join(', ')}
+Rule-based suggestion: ${fno.candidateStrategy} — ${fno.ruleReason}
+
+Choose foStrategy ONLY from the allowed list above. If you pick a strategy other than AVOID_FO, set foExpiry to "${fno.nearestExpiry}".`;
+
   const prompt = `
 ${subject}
 Current Price: ₹${input.currentPrice}
@@ -133,6 +173,7 @@ RSI (14): ${input.rsi} — ${input.rsiInterpretation}
 20-Day SMA: ₹${input.sma20} | 50-Day SMA: ₹${input.sma50} | 200-Day SMA: ₹${input.sma200}
 Price vs 200 SMA: ${input.currentPrice > input.sma200 ? 'ABOVE (bullish)' : 'BELOW (bearish)'}
 Support: ₹${input.support} | Resistance: ₹${input.resistance}
+${fnoSection}
 
 ${closingNote}
 `.trim();
@@ -171,6 +212,80 @@ In 2-3 sentences, summarize the overall market mood and what investors should wa
   } catch (error) {
     console.error('getMarketOutlook error:', error);
     return 'Market outlook is temporarily unavailable. Please check the latest index levels and news before making any decisions.';
+  }
+}
+
+interface MutualFundEstimate {
+  trendDescription: string;
+  trendDirection: 'increasing' | 'decreasing' | 'stable' | 'unknown';
+}
+
+export async function getMutualFundEstimate(stockName: string, symbol: string): Promise<MutualFundEstimate | null> {
+  try {
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-flash-latest',
+      tools: [{ googleSearchRetrieval: {} }],
+    });
+
+    const prompt = `Search for recent information (last 1-2 months) about mutual fund holdings or institutional investment trends for ${stockName} (${symbol}) on the NSE India stock market. Based on what you find, respond with ONLY a JSON object: {"trendDescription": "1-2 sentence plain-language summary of mutual fund / institutional holding trends", "trendDirection": "increasing" or "decreasing" or "stable" or "unknown"}. If you cannot find specific information, set trendDirection to "unknown" and trendDescription to a brief generic note. Respond with ONLY the JSON object, no other text.`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (typeof parsed.trendDescription !== 'string') return null;
+    if (!['increasing', 'decreasing', 'stable', 'unknown'].includes(parsed.trendDirection)) {
+      parsed.trendDirection = 'unknown';
+    }
+
+    return parsed as MutualFundEstimate;
+  } catch (error) {
+    console.error('getMutualFundEstimate error:', error);
+    return null;
+  }
+}
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface ChatContext {
+  stockName: string;
+  symbol: string;
+  summary: string;
+  recommendation: string;
+  currentPrice: number;
+}
+
+export async function chatFollowUp(context: ChatContext, history: ChatMessage[], question: string): Promise<string> {
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+
+    const historyText = history
+      .map(m => `${m.role === 'user' ? 'Investor' : 'Assistant'}: ${m.content}`)
+      .join('\n');
+
+    const prompt = `You are a helpful assistant for an Indian retail investor, answering follow-up questions about a stock analysis they just received.
+
+Stock: ${context.stockName} (${context.symbol})
+Current Price: ₹${context.currentPrice}
+Recommendation: ${context.recommendation}
+Analysis Summary: ${context.summary}
+
+${historyText ? `Conversation so far:\n${historyText}\n` : ''}
+Investor's question: ${question}
+
+Answer in 2-4 sentences, plain language, no markdown. Stay focused on this stock and general investing education. Do not give guaranteed predictions.`;
+
+    const result = await generateWithRetry(model, prompt);
+    return result.trim();
+  } catch (error) {
+    console.error('chatFollowUp error:', error);
+    return "Sorry, I couldn't process that question right now. Please try again in a moment.";
   }
 }
 
