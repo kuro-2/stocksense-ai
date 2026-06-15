@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Space_Grotesk } from 'next/font/google';
+import { Spectral, Hanken_Grotesk, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
+const hankenGrotesk = Hanken_Grotesk({ subsets: ['latin'], variable: '--font-sans' });
+const spectral = Spectral({ subsets: ['latin'], weight: ['400', '500', '600'], style: ['normal', 'italic'], variable: '--font-display' });
+const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-mono' });
 
 export const metadata: Metadata = {
   title: 'StockSense AI — Indian Stock Market Analysis',
@@ -41,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className={`${inter.variable} ${spaceGrotesk.variable} ${inter.className} min-h-full bg-[var(--background)] text-[var(--foreground)]`}>
+      <body className={`${hankenGrotesk.variable} ${spectral.variable} ${jetbrainsMono.variable} ${hankenGrotesk.className} min-h-full bg-[var(--background)] text-[var(--foreground)]`}>
         <ThemeProvider>
           <div className="ambient-bg" />
           {children}

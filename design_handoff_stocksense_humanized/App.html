@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" data-layout="editorial" data-font="editorial" data-density="regular" data-motion="subtle">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockSense AI — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Hanken+Grotesk:wght@400;500;600;700&family=Schibsted+Grotesk:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body class="theme-light">
+<div class="app" id="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <a class="sb-brand" href="Marketing.html">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 7-8"/><path d="M21 7v5h-5"/></svg></span>
+      <span class="txt">StockSense AI</span>
+    </a>
+    <nav class="sb-nav" id="sbNav">
+      <div class="sb-item" data-view="analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span class="txt">Dashboard</span>
+      </div>
+      <div class="sb-item active" data-view="analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2-7 4 14 2-7h3"/></svg>
+        <span class="txt">Analysis</span>
+      </div>
+      <div class="sb-item" data-view="analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.6 5.6 6.1.7-4.5 4.1 1.2 6L12 16.9 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg>
+        <span class="txt">Watchlist</span>
+      </div>
+      <div class="sb-item" data-view="analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>
+        <span class="txt">Portfolio</span>
+      </div>
+      <div class="sb-item" data-view="analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+        <span class="txt">Markets</span>
+      </div>
+      <div class="sb-item" data-view="analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        <span class="txt">Screener</span>
+      </div>
+      <div class="sb-item" data-view="alerts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+        <span class="txt">Alerts</span>
+      </div>
+      <div class="sb-item" data-view="analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3"/></svg>
+        <span class="txt">Backtest</span>
+      </div>
+    </nav>
+    <div class="sb-foot">
+      <span class="ava">N</span>
+      <span class="lbl" style="font-size:13px; color:var(--ink-soft)">Collapse</span>
+      <button class="sb-collapse" id="collapseBtn" title="Collapse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main canvas">
+    <header class="topbar">
+      <div class="top-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input placeholder="Search any NSE/BSE stock…">
+      </div>
+      <div class="top-right">
+        <button class="icon-btn" title="History"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v6h6"/><path d="M3.5 9a9 9 0 1 0 2.1-3.4L3 9"/><path d="M12 8v4l3 2"/></svg></button>
+        <button class="icon-btn" title="Theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5 3.6 3.6M20.4 20.4 19 19M19 5l1.4-1.4M3.6 20.4 5 19"/></svg></button>
+        <button class="top-user"><span class="ava">R</span> rohan.sharma60…
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== ANALYSIS VIEW ===== -->
+    <section class="view" id="view-analysis" data-screen-label="analysis">
+      <div class="an-hero reveal">
+        <span class="badge an-badge"><span class="dot"></span> Powered by Claude AI</span>
+        <h2>Search any stock,<br>get a <em>clear read.</em></h2>
+        <p class="an-sub">Type any NSE or BSE name or symbol for an instant AI recommendation, real technicals, and F&amp;O ideas — explained in plain English.</p>
+        <div class="an-search-wrap">
+          <div class="an-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="anSearch" placeholder="e.g. HDFC Bank, RELIANCE, TCS…" autocomplete="off">
+            <button class="btn btn-primary" id="anGo">Analyze</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="popular reveal" style="--rd:.08s">
+        <div class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 7-8"/></svg> Popular right now</div>
+        <div class="grid" id="popGrid"></div>
+      </div>
+
+      <div class="recent popular reveal" style="--rd:.14s">
+        <div class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v6h6"/><path d="M3.5 9a9 9 0 1 0 2.1-3.4L3 9"/></svg> Your recent reads</div>
+        <div class="row">
+          <div class="recent-card"><div class="t"><span class="sym">RELIANCE</span><span class="verdict-pill vp-buy">BUY</span></div><div class="price">₹2,914 <span class="up">▲ 1.8%</span></div><div class="meta">Energy · 2 hours ago</div></div>
+          <div class="recent-card"><div class="t"><span class="sym">TCS</span><span class="verdict-pill vp-hold">HOLD</span></div><div class="price">₹3,902 <span class="up">▲ 0.6%</span></div><div class="meta">IT Services · yesterday</div></div>
+          <div class="recent-card"><div class="t"><span class="sym">BAJFINANCE</span><span class="verdict-pill vp-sell">SELL</span></div><div class="price">₹7,210 <span class="down">▼ 0.9%</span></div><div class="meta">NBFC · 2 days ago</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ALERTS VIEW ===== -->
+    <section class="view" id="view-alerts" data-screen-label="alerts" hidden>
+      <div class="view-head reveal">
+        <div>
+          <div class="view-title">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></span>
+            <h1>Price Alerts</h1>
+          </div>
+          <p class="view-sub">Set a target and we'll email you the moment a stock crosses it — no need to keep checking.</p>
+        </div>
+      </div>
+
+      <div class="alert-form reveal" style="--rd:.06s">
+        <div class="alert-grid">
+          <div class="field"><label>Stock</label><input id="afStock" placeholder="e.g. RELIANCE" value="RELIANCE"></div>
+          <div class="field"><label>Condition</label>
+            <select id="afCond"><option value="above">Goes above</option><option value="below">Drops below</option></select>
+          </div>
+          <div class="field"><label>Target price (₹)</label><input id="afPrice" type="number" placeholder="0.00"></div>
+          <div class="field af-add"><label>&nbsp;</label>
+            <button class="btn btn-primary" id="afAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Add alert</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="alerts-list" id="alertsList"></div>
+      <div class="empty reveal" id="alertsEmpty" hidden>
+        <div class="e-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></div>
+        <h3>No alerts watching yet</h3>
+        <p>Add one above and we'll keep an eye on the market for you.</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span id="toastMsg">Done</span></div>
+<div id="tweak-root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="assets/tweaks-app.jsx"></script>
+
+<script>
+/* reveal motion (same bullet-proof approach as marketing) */
+function revealInView(){
+  const vh = innerHeight * 1.1;
+  document.querySelectorAll('.reveal:not(.in)').forEach(el => {
+    if (el.getBoundingClientRect().top < vh) el.classList.add('in');
+  });
+}
+(function(){
+  if (document.documentElement.getAttribute('data-motion') === 'off') return;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.documentElement.classList.add('anim-ok'); revealInView();
+  }));
+})();
+addEventListener('scroll', revealInView, {passive:true});
+setTimeout(() => document.querySelectorAll('.reveal').forEach(el => el.classList.add('in')), 2600);
+
+/* sidebar collapse */
+document.getElementById('collapseBtn').addEventListener('click', () =>
+  document.getElementById('app').classList.toggle('collapsed'));
+
+/* view switching */
+const views = { analysis: document.getElementById('view-analysis'), alerts: document.getElementById('view-alerts') };
+const navItems = [...document.querySelectorAll('.sb-item')];
+const itemFor = name => navItems.find(it => it.querySelector('.txt').textContent.trim().toLowerCase() === name) || navItems.find(it => it.dataset.view === name);
+function showView(name, item){
+  Object.entries(views).forEach(([k,el]) => el.hidden = (k !== name));
+  navItems.forEach(it => it.classList.remove('active'));
+  (item || itemFor(name)).classList.add('active');
+  revealInView();
+  if (location.hash.slice(1) !== name) history.replaceState(null,'','#'+name);
+}
+document.getElementById('sbNav').addEventListener('click', e => {
+  const item = e.target.closest('.sb-item'); if (!item) return;
+  showView(item.dataset.view, item);
+});
+
+/* popular chips */
+const POP = ['RELIANCE','TCS','INFY','HDFCBANK','SBIN','BAJFINANCE','WIPRO','ICICIBANK','TATAMOTORS','ITC','LT','ASIANPAINT'];
+const pg = document.getElementById('popGrid');
+POP.forEach(s => { const b = document.createElement('button'); b.className='chip'; b.textContent=s; b.onclick=()=>analyze(s); pg.appendChild(b); });
+
+/* toast */
+let toastT;
+function toast(msg){
+  const t = document.getElementById('toast'); document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+function analyze(sym){ toast('Analyzing ' + sym + ' …'); }
+document.getElementById('anGo').onclick = () => { const v=document.getElementById('anSearch').value.trim()||'RELIANCE'; analyze(v.toUpperCase()); };
+document.getElementById('anSearch').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('anGo').click(); });
+
+/* ---------- Alerts (interactive) ---------- */
+const PRICES = { RELIANCE:2914, TCS:3902, INFY:1512, HDFCBANK:1684, SBIN:842, BAJFINANCE:7210, WIPRO:468, ICICIBANK:1178, TATAMOTORS:1024, ITC:438, LT:3560, ASIANPAINT:2890 };
+let alerts = [
+  { sym:'RELIANCE', cond:'above', target:3180, price:2914 },
+  { sym:'INFY',     cond:'below', target:1400, price:1512 },
+];
+const listEl = document.getElementById('alertsList'), emptyEl = document.getElementById('alertsEmpty');
+function pct(a){
+  if (a.cond === 'above'){ return Math.max(4, Math.min(100, Math.round(a.price / a.target * 100))); }
+  return Math.max(4, Math.min(100, Math.round(a.target / a.price * 100)));
+}
+function renderAlerts(){
+  listEl.innerHTML = '';
+  emptyEl.hidden = alerts.length > 0;
+  alerts.forEach((a, i) => {
+    const el = document.createElement('div'); el.className = 'alert-card reveal';
+    el.innerHTML =
+      `<span class="badge-sym">${a.sym.slice(0,4)}</span>
+       <div><div class="ac-name">${a.sym}</div>
+         <div class="ac-cond">${a.cond==='above'?'Goes above':'Drops below'} · live ₹${a.price.toLocaleString('en-IN')}</div></div>
+       <div class="ac-prog"><div class="bar"><i style="width:0%"></i></div>
+         <div class="pl"><span>now ₹${a.price.toLocaleString('en-IN')}</span><span>${pct(a)}%</span></div></div>
+       <div class="ac-target"><div class="k">Target</div><div class="v">₹${a.target.toLocaleString('en-IN')}</div></div>
+       <button class="ac-del" title="Remove" data-i="${i}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>`;
+    listEl.appendChild(el);
+    requestAnimationFrame(()=>{ const bar = el.querySelector('.bar i'); if (bar) bar.style.width = pct(a) + '%'; });
+  });
+  // fallback width set (in case rAF throttled)
+  setTimeout(()=>document.querySelectorAll('.alert-card').forEach((el,i)=>{ const b=el.querySelector('.bar i'); if(b&&alerts[i]) b.style.width=pct(alerts[i])+'%'; }),60);
+  document.querySelectorAll('.ac-del').forEach(b => b.onclick = () => { alerts.splice(+b.dataset.i,1); renderAlerts(); toast('Alert removed'); });
+  document.querySelectorAll('.alert-card.reveal').forEach(el=>el.classList.add('in'));
+}
+document.getElementById('afAdd').onclick = () => {
+  const sym = (document.getElementById('afStock').value.trim().toUpperCase().split(' ')[0]) || 'RELIANCE';
+  const cond = document.getElementById('afCond').value;
+  let target = parseFloat(document.getElementById('afPrice').value);
+  const price = PRICES[sym] || Math.round((Math.random()*2000+400));
+  if (!target || target <= 0){ target = cond==='above' ? Math.round(price*1.08) : Math.round(price*0.92); }
+  alerts.unshift({ sym, cond, target, price });
+  document.getElementById('afPrice').value = '';
+  renderAlerts(); toast(sym + ' alert added');
+};
+renderAlerts();
+
+/* boot view from hash */
+showView(location.hash.slice(1) === 'alerts' ? 'alerts' : 'analysis');
+</script>
+</body>
+</html>
