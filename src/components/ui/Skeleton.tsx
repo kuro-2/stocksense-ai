@@ -9,7 +9,7 @@ interface SkeletonProps {
 export function Skeleton({ className, width, height }: SkeletonProps) {
   return (
     <div
-      className={cn('animate-pulse bg-slate-200 rounded', className)}
+      className={cn('animate-pulse bg-(--line-2) rounded', className)}
       style={{ width, height: height ? `${height}px` : undefined }}
     />
   );
