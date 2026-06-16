@@ -5,7 +5,7 @@ import { Reveal } from '@/components/ui/Reveal';
 import Link from 'next/link';
 import {
   Brain, BarChart3, Gauge, Star, Wallet, Globe2, SlidersHorizontal,
-  Bell, FlaskConical, ArrowRight, Check,
+  Bell, FlaskConical, ArrowRight, Check, AlertTriangle,
 } from 'lucide-react';
 
 const POPULAR_STOCKS = ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'SBIN', 'BAJFINANCE', 'WIPRO', 'ICICIBANK'];
@@ -218,7 +218,7 @@ export default function HomePage() {
         </div>
 
         <div className="disclaimer" style={{ marginTop: 'var(--s6)' }}>
-          <span>⚠️</span>
+          <AlertTriangle width={20} height={20} style={{ flexShrink: 0, marginTop: 1 }} />
           <p>
             StockSense AI is an educational tool only — not registered with SEBI as an Investment Adviser
             or Research Analyst. Nothing here is investment advice.{' '}

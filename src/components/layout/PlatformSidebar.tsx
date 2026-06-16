@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Star, Wallet, Globe2, SlidersHorizontal,
-  Bell, FlaskConical, LineChart, PanelLeftClose, PanelLeft, X, GitCompare, Rocket, TrendingUp,
+  Bell, FlaskConical, LineChart, GitCompare, Rocket, TrendingUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,12 +23,11 @@ const NAV_ITEMS = [
 
 interface PlatformSidebarProps {
   collapsed: boolean;
-  onToggleCollapse: () => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
 }
 
-export function PlatformSidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: PlatformSidebarProps) {
+export function PlatformSidebar({ collapsed, mobileOpen, onCloseMobile }: PlatformSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -65,15 +64,6 @@ export function PlatformSidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
             {!collapsed && <span className="truncate">StockSense AI</span>}
           </Link>
 
-          {!collapsed && (
-            <button
-              onClick={onCloseMobile}
-              className="lg:hidden sb-collapse"
-              aria-label="Close menu"
-            >
-              <X width={18} height={18} />
-            </button>
-          )}
         </div>
 
         {/* Nav items */}
@@ -95,19 +85,6 @@ export function PlatformSidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           })}
         </nav>
 
-        {/* Collapse toggle — desktop only */}
-        <div className="hidden lg:block border-t border-(--sidebar-border) p-2">
-          <button
-            onClick={onToggleCollapse}
-            className={cn('sb-item w-full', collapsed && 'justify-center px-2')}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed
-              ? <PanelLeft width={19} height={19} />
-              : <><PanelLeftClose width={19} height={19} /><span>Collapse</span></>
-            }
-          </button>
-        </div>
       </aside>
     </>
   );

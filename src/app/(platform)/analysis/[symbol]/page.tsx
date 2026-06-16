@@ -1,7 +1,9 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, RefreshCw, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, RefreshCw, Loader2, Lock, Sparkles } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import { RecommendationCard } from '@/components/stock/RecommendationCard';
 import { TechnicalPanel } from '@/components/stock/TechnicalPanel';
 import { FnOPanel } from '@/components/stock/FnOPanel';
@@ -41,6 +43,7 @@ export default function AnalysisPage() {
   const [optionChain, setOptionChain] = useState<OptionChainResult | null>(null);
   const [optionChainLoading, setOptionChainLoading] = useState(false);
   const [optionChainError, setOptionChainError] = useState<string | null>(null);
+  const [limitReached, setLimitReached] = useState<{ source: 'anon' | 'user'; message: string } | null>(null);
 
   const loadOptionChain = useCallback(async () => {
     setOptionChainLoading(true);
@@ -58,9 +61,25 @@ export default function AnalysisPage() {
   }, [symbol]);
 
   const runAnalysis = useCallback(async () => {
+    // Check usage limits before making any API call
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+    if (!currentUser) {
+      // Logged-out: enforce 1-use soft gate via localStorage
+      const anonUsed = typeof window !== 'undefined' && localStorage.getItem('ss_anon_used');
+      if (anonUsed) {
+        setLimitReached({
+          source: 'anon',
+          message: "You've used your 1 free AI analysis.",
+        });
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
     setAnalysis(null);
+    setLimitReached(null);
 
     // Rotate loading messages
     let msgIdx = 0;
@@ -82,9 +101,17 @@ export default function AnalysisPage() {
       if (analyzeRes.status === 'fulfilled') {
         const data = await analyzeRes.value.json();
         if (!analyzeRes.value.ok) {
+          if (data.code === 'LIMIT_REACHED') {
+            setLimitReached({ source: 'user', message: data.error });
+            return;
+          }
           throw new Error(data.error ?? 'Analysis failed');
         }
         setAnalysis(data);
+        // Mark anonymous usage after first successful analysis
+        if (!currentUser && typeof window !== 'undefined') {
+          localStorage.setItem('ss_anon_used', '1');
+        }
       }
 
       if (historyRes.status === 'fulfilled' && historyRes.value.ok) {
@@ -143,7 +170,7 @@ export default function AnalysisPage() {
           </div>
           <button
             onClick={runAnalysis}
-            disabled={loading}
+            disabled={loading || !!limitReached}
             className="flex items-center gap-2 text-sm bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -175,6 +202,49 @@ export default function AnalysisPage() {
               >
                 Try Again
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Usage limit reached */}
+        {!loading && limitReached && (
+          <div style={{ padding: 'var(--s8) 0' }}>
+            <div className="panel" style={{ maxWidth: 480, margin: '0 auto', padding: 'var(--s7)', textAlign: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--accent-soft)', color: 'var(--accent)', display: 'grid', placeItems: 'center', margin: '0 auto var(--s5)' }}>
+                {limitReached.source === 'anon' ? (
+                  <Lock width={22} height={22} strokeWidth={2} />
+                ) : (
+                  <Sparkles width={22} height={22} strokeWidth={2} />
+                )}
+              </div>
+
+              {limitReached.source === 'anon' ? (
+                <>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em', marginBottom: 'var(--s3)' }}>
+                    You&apos;ve used your free analysis
+                  </h3>
+                  <p style={{ color: 'var(--ink-soft)', fontSize: 15, lineHeight: 1.6, marginBottom: 'var(--s6)' }}>
+                    Create a free account to unlock up to 10 AI analyses — no credit card, no catch.
+                  </p>
+                  <div style={{ display: 'flex', gap: 'var(--s3)', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <Link href="/signup" className="btn btn-primary" style={{ padding: '10px 22px' }}>
+                      Create free account
+                    </Link>
+                    <Link href="/login" className="btn btn-ghost" style={{ padding: '10px 22px' }}>
+                      Log in
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em', marginBottom: 'var(--s3)' }}>
+                    You&apos;ve reached your AI limit
+                  </h3>
+                  <p style={{ color: 'var(--ink-soft)', fontSize: 15, lineHeight: 1.6 }}>
+                    {limitReached.message}
+                  </p>
+                </>
+              )}
             </div>
           </div>
         )}

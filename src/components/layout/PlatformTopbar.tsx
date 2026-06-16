@@ -6,16 +6,16 @@ import { QuickSearch } from './QuickSearch';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { ProfileMenu } from './ProfileMenu';
 
-export function PlatformTopbar({ onOpenMobileSidebar }: { onOpenMobileSidebar: () => void }) {
+export function PlatformTopbar({ onHamburgerClick }: { onHamburgerClick: () => void }) {
   return (
     <header
-      className="sticky top-0 z-30 flex items-center gap-3 px-4 sm:px-6 border-b border-(--sidebar-border)"
+      className="sticky top-0 z-30 flex items-center gap-3 px-4 sm:px-6 lg:pl-3 border-b border-(--sidebar-border)"
       style={{ height: 66, background: 'var(--sidebar-bg)', backdropFilter: 'blur(16px)' }}
     >
       <button
-        onClick={onOpenMobileSidebar}
-        className="lg:hidden icon-btn flex-shrink-0"
-        aria-label="Open menu"
+        onClick={onHamburgerClick}
+        className="icon-btn shrink-0"
+        aria-label="Toggle menu"
       >
         <Menu width={20} height={20} />
       </button>

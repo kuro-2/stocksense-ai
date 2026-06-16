@@ -30,7 +30,7 @@ const THEME_INIT_SCRIPT = `
 (function () {
   try {
     var stored = localStorage.getItem('theme');
-    var dark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var dark = stored === 'dark';
     if (dark) document.documentElement.classList.add('dark');
   } catch (e) {}
 })();

@@ -26,12 +26,14 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
     <div className="min-h-screen">
       <PlatformSidebar
         collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed(v => !v)}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
       />
-      <div className={cn('transition-[padding] duration-300 ease-in-out', collapsed ? 'lg:pl-[76px]' : 'lg:pl-64')}>
-        <PlatformTopbar onOpenMobileSidebar={() => setMobileOpen(true)} />
+      <div className={cn('transition-[padding] duration-300 ease-in-out', collapsed ? 'lg:pl-18' : 'lg:pl-60')}>
+        <PlatformTopbar onHamburgerClick={() => {
+          if (window.innerWidth < 1024) setMobileOpen(v => !v);
+          else setCollapsed(v => !v);
+        }} />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           {children}
         </main>

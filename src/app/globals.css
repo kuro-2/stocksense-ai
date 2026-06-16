@@ -589,6 +589,10 @@ a { color: inherit; text-decoration: none; }
 }
 .hero h1 em { font-style: italic; color: var(--accent-bright); font-weight: 500; }
 :root:not(.dark) .hero h1 em { color: var(--accent-deep); }
+
+/* Accent-italic em — applies to any h1/h2/.section-title outside .hero */
+h1 em, .section-title em { font-style: italic; color: var(--accent-bright); font-weight: 500; }
+:root:not(.dark) h1 em, :root:not(.dark) .section-title em { color: var(--accent-deep); }
 .hero .lede { margin-top: var(--s5); }
 .hero-search { margin-top: var(--s6); max-width: 520px; }
 .searchbar {
@@ -724,7 +728,7 @@ a { color: inherit; text-decoration: none; }
 .cta-band .row { margin-top: var(--s6); display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; }
 
 /* Footer */
-.foot { border-top: 1px solid var(--line); margin-top: var(--s9); padding-block: var(--s8) var(--s6); }
+.foot { border-top: 1px solid var(--line); margin-top: var(--s4); padding-block: var(--s8) var(--s6); }
 .foot-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: var(--s6); }
 @media (max-width: 760px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
 .foot h5 { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: var(--s4); }
@@ -784,7 +788,7 @@ a { color: inherit; text-decoration: none; }
 
 /* Analysis hero (Editorial) */
 .an-hero { position: relative; padding-block: clamp(20px,4vw,48px); }
-.an-hero h2 { font-family: var(--font-display); font-weight: 500; font-size: clamp(34px,5vw,60px); line-height: 1.0; letter-spacing: -.025em; max-width: 16ch; }
+.an-hero h2 { font-family: var(--font-display); font-weight: 500; font-size: clamp(34px,5vw,60px); line-height: 1.0; letter-spacing: -.025em; max-width: 16ch; color: var(--foreground); }
 .an-hero h2 em { font-style: italic; color: var(--accent-deep); }
 .dark .an-hero h2 em { color: var(--accent-bright); }
 .an-hero .an-sub { margin-top: var(--s4); color: var(--ink-soft); font-size: 17px; line-height: 1.6; max-width: 52ch; }
@@ -798,7 +802,7 @@ a { color: inherit; text-decoration: none; }
 .an-search input { flex: 1; border: 0; outline: 0; background: transparent; color: var(--foreground); font-family: var(--font-sans); font-size: 16px; padding: 11px 0; }
 .an-search input::placeholder { color: var(--ink-mute); }
 
-.popular { margin-top: var(--s8); }
+.popular { margin-top: var(--s5); }
 .popular .lbl { display: flex; align-items: center; gap: 9px; font-family: var(--font-display); font-weight: 600; font-size: 18px; }
 .popular .lbl svg { width: 18px; height: 18px; color: var(--accent-deep); }
 .dark .popular .lbl svg { color: var(--accent-bright); }

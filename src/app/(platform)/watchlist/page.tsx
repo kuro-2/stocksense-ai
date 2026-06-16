@@ -60,7 +60,7 @@ export default function WatchlistPage() {
 
   if (unauthorized) {
     return (
-      <div className="max-w-4xl mx-auto py-16 text-center text-(--muted)">
+      <div className="max-w-5xl mx-auto py-16 text-center text-(--muted)">
         <p className="font-medium mb-2">Please log in to view your watchlist</p>
         <Link href="/login" className="text-emerald font-medium hover:underline">Go to login</Link>
       </div>
@@ -68,7 +68,7 @@ export default function WatchlistPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="font-display text-2xl font-bold text-(--foreground)">
             Watchlist{items.length > 0 && <span className="text-(--muted) font-normal text-lg ml-2">({items.length} stocks)</span>}

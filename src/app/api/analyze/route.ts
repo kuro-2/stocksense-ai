@@ -24,10 +24,11 @@ export async function POST(req: NextRequest) {
 
     const isIndex = isIndexSymbol(symbol);
 
-    const [quote, history, fnoContext] = await Promise.all([
+    const [quote, history, fnoContext, user] = await Promise.all([
       getQuote(symbol),
       getHistory(symbol, '3mo'),
       getFnoMarketContext(symbol, isIndex),
+      getAuthUser(),
     ]);
 
     if (!quote || !quote.regularMarketPrice) {
@@ -106,12 +107,30 @@ export async function POST(req: NextRequest) {
       orderBy: { generatedAt: 'desc' },
     });
 
+    // Usage limits: only checked when a real AI call is needed (cached results pass through)
+    if (!cached) {
+      if (!user) {
+        // Anonymous: the client enforces the 1-use soft gate via localStorage.
+        // No server-side check needed — we can't reliably identify anon users.
+      } else {
+        const isUnlimited = (user.user_metadata as Record<string, unknown> | undefined)?.unlimited === true;
+        if (!isUnlimited) {
+          const usageCount = await prisma.analysis.count({ where: { userId: user.id } });
+          if (usageCount >= 10) {
+            return NextResponse.json({
+              error: "You've reached the 10 free AI analyses on your account. StockSense AI is completely free to run — to keep it that way for everyone, I can't offer unlimited access by default. If you'd like to continue, drop a note to rohan.sharma6004@gmail.com and I'll personally unlock full access for you.",
+              code: 'LIMIT_REACHED',
+            }, { status: 402 });
+          }
+        }
+      }
+    }
+
     const aiResult: Partial<AnalysisResult> = cached?.rawAiResponse
       ? (cached.rawAiResponse as Partial<AnalysisResult>)
       : await analyzeStock(analysisInput);
-    const user = await getAuthUser();
 
-    // Post-process the AI's F&O suggestion: enforce the rule-based bounds,
+    // Post-process the AI's F&O suggestion (user already resolved above): enforce the rule-based bounds,
     // cross-check against the equity recommendation, and substitute real
     // strike/expiry data from the live NSE option chain where available.
     const fnoFinal = finalizeFnoRecommendation({

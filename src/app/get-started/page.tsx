@@ -4,7 +4,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Reveal } from '@/components/ui/Reveal';
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, UserPlus, Search, LineChart, ChevronDown } from 'lucide-react';
+import { ArrowRight, UserPlus, Search, LineChart, ChevronDown, AlertTriangle } from 'lucide-react';
 
 const STEPS = [
   { n: '01', icon: UserPlus, title: 'Create a free account', desc: 'Sign up with your email — no credit card, no payment details, ever.' },
@@ -64,7 +64,7 @@ export default function GetStartedPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="section wrap">
+      <section className="hero wrap">
         <p className="eyebrow">Get Started</p>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'clamp(40px,6vw,70px)', lineHeight: 1.0, letterSpacing: '-0.025em', marginTop: 'var(--s4)' }}>
           Three steps to your<br /><em>first AI analysis</em>
@@ -115,7 +115,7 @@ export default function GetStartedPage() {
       {/* SEBI disclaimer */}
       <section className="wrap" style={{ paddingBottom: 'var(--s6)' }}>
         <div className="disclaimer">
-          <span>⚠️</span>
+          <AlertTriangle width={20} height={20} style={{ flexShrink: 0, marginTop: 1 }} />
           <p>
             StockSense AI is an educational tool only. It is not registered with SEBI as an Investment
             Adviser or Research Analyst, and nothing on this site constitutes investment advice. Outputs are

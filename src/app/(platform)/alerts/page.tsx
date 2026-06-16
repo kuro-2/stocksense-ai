@@ -93,15 +93,10 @@ export default function AlertsPage() {
 
   if (unauthorized) {
     return (
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: 'var(--s9) var(--s4)', textAlign: 'center' }}>
-        <div className="empty">
-          <div className="e-ic"><Bell width={30} height={30} /></div>
-          <h3>Login required</h3>
-          <p>Please log in to manage your price alerts.</p>
-          <div style={{ marginTop: 'var(--s5)' }}>
-            <Link href="/login" className="btn btn-primary">Go to login</Link>
-          </div>
-        </div>
+      <div className="max-w-5xl mx-auto py-16 text-center text-(--muted)">
+        <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
+        <p className="font-medium mb-2">Please log in to manage your price alerts.</p>
+        <Link href="/login" className="text-emerald font-medium hover:underline">Go to login</Link>
       </div>
     );
   }
@@ -110,20 +105,15 @@ export default function AlertsPage() {
   const triggeredAlerts = items.filter(a => !a.isActive);
 
   return (
-    <div style={{ maxWidth: 760 }}>
-      {/* Page header */}
-      <div className="view-head" style={{ marginBottom: 'var(--s6)' }}>
-        <div>
-          <div className="view-title">
-            <span className="ic"><Bell width={21} height={21} /></span>
-            <h1>Price Alerts</h1>
-          </div>
-          <p className="view-sub">Get notified by email when a stock crosses your target price.</p>
-        </div>
+    <div className="max-w-5xl mx-auto">
+      <div className="flex items-center gap-2 mb-2">
+        <Bell className="w-6 h-6 text-emerald" />
+        <h1 className="font-display text-2xl font-bold text-(--foreground)">Price Alerts</h1>
       </div>
+      <p className="text-sm text-(--muted) mb-6">Get notified by email when a stock crosses your target price.</p>
 
       {/* Add alert form */}
-      <form onSubmit={handleAdd} className="alert-form" style={{ marginBottom: 'var(--s6)' }}>
+      <form onSubmit={handleAdd} className="alert-form mb-8">
         <div className="alert-grid">
           {/* Stock search */}
           <div className="field" style={{ position: 'relative' }}>
@@ -205,24 +195,24 @@ export default function AlertsPage() {
 
       {/* Loading */}
       {loading && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--s8) 0' }}>
-          <Loader2 width={28} height={28} style={{ animation: 'spin 1s linear infinite', color: 'var(--accent)' }} />
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald" />
         </div>
       )}
 
       {/* Empty state */}
       {!loading && items.length === 0 && (
-        <div className="empty">
-          <div className="e-ic"><Bell width={30} height={30} /></div>
-          <h3>No price alerts yet</h3>
-          <p>Add one above to get notified when a stock hits your target.</p>
+        <div className="text-center py-16 text-(--muted)">
+          <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p className="font-medium">No price alerts yet</p>
+          <p className="text-sm mt-1">Add one above to get notified when a stock hits your target.</p>
         </div>
       )}
 
       {/* Active alerts */}
       {!loading && activeAlerts.length > 0 && (
-        <div style={{ marginBottom: 'var(--s6)' }}>
-          <p className="eyebrow" style={{ marginBottom: 'var(--s3)' }}>Active</p>
+        <div className="mb-8">
+          <p className="eyebrow mb-3">Active</p>
           <div className="alerts-list">
             {activeAlerts.map(a => (
               <div key={a.id} className="alert-card">
@@ -247,7 +237,7 @@ export default function AlertsPage() {
       {/* Triggered alerts */}
       {!loading && triggeredAlerts.length > 0 && (
         <div>
-          <p className="eyebrow" style={{ marginBottom: 'var(--s3)' }}>Triggered</p>
+          <p className="eyebrow mb-3">Triggered</p>
           <div className="alerts-list">
             {triggeredAlerts.map(a => (
               <div key={a.id} className="alert-card" style={{ opacity: 0.65 }}>

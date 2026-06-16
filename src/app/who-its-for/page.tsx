@@ -49,7 +49,7 @@ export default function WhoItsForPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="section wrap">
+      <section className="hero wrap">
         <p className="eyebrow">Who it&apos;s for</p>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'clamp(40px,6vw,70px)', lineHeight: 1.0, letterSpacing: '-0.025em', marginTop: 'var(--s4)' }}>
           Built for every kind of<br /><em>Indian investor</em>

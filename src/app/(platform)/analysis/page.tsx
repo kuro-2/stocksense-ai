@@ -57,7 +57,7 @@ export default function AnalysisLandingPage() {
   }
 
   return (
-    <div style={{ maxWidth: 900 }}>
+    <div style={{ maxWidth: 900 }} className="mx-auto">
       {/* Editorial hero */}
       <section className="an-hero">
         <h2>
@@ -98,7 +98,7 @@ export default function AnalysisLandingPage() {
       </div>
 
       {/* Nifty 50 grid */}
-      <div className="recent" style={{ marginTop: 'var(--s9)' }}>
+      <div className="recent">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <p style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18 }}>
             {query ? `Results for "${query}"` : 'Nifty 50'}

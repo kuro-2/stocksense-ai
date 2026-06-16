@@ -22,20 +22,18 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto">
       {/* Hero / search */}
-      <section className="relative overflow-hidden glass-card rounded-2xl px-6 py-12 md:py-16 mb-8 text-center">
-        <div className="inline-flex items-center gap-2 mb-5 px-3 py-1 rounded-full glass-card text-xs font-medium text-emerald">
+      <section className="glass-card rounded-2xl px-8 py-8 mb-8">
+        <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full glass-card text-xs font-medium text-emerald">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Powered by Google Gemini AI</span>
         </div>
-        <h1 className="font-display text-3xl md:text-4xl font-bold leading-tight mb-3 text-(--foreground)">
+        <h1 className="font-display text-3xl md:text-4xl font-bold leading-tight mb-2 text-(--foreground)">
           Analyze any Indian stock with <span className="brand-gradient-text">AI clarity</span>
         </h1>
-        <p className="text-(--muted) text-base mb-8 max-w-xl mx-auto">
+        <p className="text-(--muted) text-base mb-6 max-w-xl">
           Search any NSE/BSE stock to get an instant AI-powered recommendation, technicals, and F&amp;O ideas.
         </p>
-        <div className="flex justify-center">
-          <StockSearch />
-        </div>
+        <StockSearch />
       </section>
 
       {/* Popular stocks */}
@@ -69,7 +67,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {FEATURE_LINKS.map(({ href, icon: Icon, title, desc }) => (
             <Link key={href} href={href} className="glass-card glass-card-hover rounded-2xl p-5 group">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald to-emerald-light flex items-center justify-center mb-4">
+              <div className="w-10 h-10 rounded-lg bg-linear-to-br from-emerald to-emerald-light flex items-center justify-center mb-4">
                 <Icon className="w-5 h-5 text-white" />
               </div>
               <h3 className="font-display font-semibold text-(--foreground) mb-1 flex items-center gap-1.5">
