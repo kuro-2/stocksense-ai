@@ -1,14 +1,15 @@
+'use client';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { Reveal } from '@/components/ui/Reveal';
+import { useState } from 'react';
 import Link from 'next/link';
-import {
-  Sparkles, ArrowRight, UserPlus, Search, LineChart, ChevronDown,
-} from 'lucide-react';
+import { ArrowRight, UserPlus, Search, LineChart, ChevronDown } from 'lucide-react';
 
 const STEPS = [
-  { icon: UserPlus, title: '1. Create a free account', desc: 'Sign up with your email — no credit card, no payment details, ever.' },
-  { icon: Search, title: '2. Search any stock', desc: 'Type any NSE/BSE stock name or symbol into the search bar.' },
-  { icon: LineChart, title: '3. Get your AI analysis', desc: 'See a full breakdown — recommendation, technicals, F&O ideas, and news — in seconds.' },
+  { n: '01', icon: UserPlus, title: 'Create a free account', desc: 'Sign up with your email — no credit card, no payment details, ever.' },
+  { n: '02', icon: Search, title: 'Search any stock', desc: 'Type any NSE/BSE stock name or symbol into the search bar.' },
+  { n: '03', icon: LineChart, title: 'Get your AI analysis', desc: 'See a full breakdown — recommendation, technicals, F&O ideas, and news — in seconds.' },
 ];
 
 const FAQS = [
@@ -18,7 +19,7 @@ const FAQS = [
   },
   {
     q: 'Do I need a Demat or trading account to use this?',
-    a: 'No. StockSense AI is an analysis and learning tool — it doesn\'t place trades. You can use it purely for research, or alongside whatever broker account you already have.',
+    a: "No. StockSense AI is an analysis and learning tool — it doesn't place trades. You can use it purely for research, or alongside whatever broker account you already have.",
   },
   {
     q: 'Is this investment advice?',
@@ -30,7 +31,7 @@ const FAQS = [
   },
   {
     q: 'How accurate are the AI recommendations?',
-    a: 'Technical indicators (RSI, moving averages, support & resistance) are computed directly from real market data — they\'re never invented. The AI then reasons over this data to produce a recommendation, but like any forecast, it can be wrong. Always treat it as one input among many.',
+    a: "Technical indicators (RSI, moving averages, support & resistance) are computed directly from real market data — they're never invented. The AI then reasons over this data to produce a recommendation, but like any forecast, it can be wrong. Always treat it as one input among many.",
   },
   {
     q: 'Can I practice without risking real money?',
@@ -38,9 +39,24 @@ const FAQS = [
   },
   {
     q: 'How do price alerts work?',
-    a: 'Set a target price for any stock you\'re tracking, and StockSense AI will email you the moment the price crosses that level.',
+    a: "Set a target price for any stock you're tracking, and StockSense AI will email you the moment the price crosses that level.",
   },
 ];
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`faq-item${open ? ' open' : ''}`}>
+      <button className="faq-q" onClick={() => setOpen(v => !v)} aria-expanded={open}>
+        <span>{q}</span>
+        <ChevronDown className="chev" width={20} height={20} />
+      </button>
+      <div className="faq-a" style={{ maxHeight: open ? 400 : 0 }}>
+        <p>{a}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function GetStartedPage() {
   return (
@@ -48,88 +64,76 @@ export default function GetStartedPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: 'radial-gradient(circle at 80% 0%, rgba(45,212,167,0.16), transparent 45%)',
-          }}
-        />
-        <div className="relative max-w-4xl mx-auto text-center px-4 pt-16 pb-14 md:pt-20 md:pb-16">
-          <div className="inline-flex items-center gap-2 mb-5 px-3 py-1 rounded-full glass-card text-xs font-medium text-emerald">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Get Started</span>
-          </div>
-          <h1 className="font-display text-3xl md:text-5xl font-bold mb-4 text-(--foreground)">
-            You&apos;re three steps away from your first AI analysis
-          </h1>
-          <p className="text-(--muted) text-lg max-w-2xl mx-auto">
-            No payment details, no waitlists — just sign up and start exploring.
+      <section className="section wrap">
+        <p className="eyebrow">Get Started</p>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'clamp(40px,6vw,70px)', lineHeight: 1.0, letterSpacing: '-0.025em', marginTop: 'var(--s4)' }}>
+          Three steps to your<br /><em>first AI analysis</em>
+        </h1>
+        <p className="lede" style={{ marginTop: 'var(--s5)', maxWidth: '48ch' }}>
+          No payment details, no waitlists — just sign up and start exploring.
+        </p>
+      </section>
+
+      {/* Steps — editorial flow */}
+      <Reveal as="section" className="section wrap" delay={0.05}>
+        <div className="section-head">
+          <p className="eyebrow">The process</p>
+          <h2 className="section-title">How to get going</h2>
+        </div>
+        <div className="flow">
+          {STEPS.map(step => (
+            <div key={step.n} className="flow-item">
+              <span className="flow-num">{step.n}</span>
+              <div className="flow-body">
+                <h3 className="flow-title">{step.title}</h3>
+                <p className="flow-desc">{step.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 'var(--s6)' }}>
+          <Link href="/signup" className="btn btn-primary">
+            Create your free account <span className="arrow"><ArrowRight width={16} height={16} /></span>
+          </Link>
+        </div>
+      </Reveal>
+
+      {/* FAQ */}
+      <Reveal as="section" className="section wrap" delay={0.05}>
+        <div className="section-head">
+          <p className="eyebrow">FAQ</p>
+          <h2 className="section-title">Frequently Asked Questions</h2>
+          <p className="section-sub">Everything you need to know before you start.</p>
+        </div>
+        <div className="faq" style={{ marginTop: 'var(--s6)' }}>
+          {FAQS.map(({ q, a }) => (
+            <FaqItem key={q} q={q} a={a} />
+          ))}
+        </div>
+      </Reveal>
+
+      {/* SEBI disclaimer */}
+      <section className="wrap" style={{ paddingBottom: 'var(--s6)' }}>
+        <div className="disclaimer">
+          <span>⚠️</span>
+          <p>
+            StockSense AI is an educational tool only. It is not registered with SEBI as an Investment
+            Adviser or Research Analyst, and nothing on this site constitutes investment advice. Outputs are
+            generated by an AI model and may be inaccurate or incomplete. Investments in securities markets
+            are subject to market risk — please consult a SEBI-registered investment adviser before investing.{' '}
+            <Link href="/legal/disclaimer">See our Risk Disclosure.</Link>
           </p>
         </div>
       </section>
 
-      {/* Steps */}
-      <section className="max-w-5xl mx-auto px-4 py-14">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          {STEPS.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="glass-card glass-card-hover rounded-2xl p-6 text-center">
-              <div className="w-12 h-12 bg-emerald-light/15 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Icon className="w-6 h-6 text-emerald" />
-              </div>
-              <h3 className="font-display font-semibold text-(--foreground) mb-1">{title}</h3>
-              <p className="text-sm text-(--muted)">{desc}</p>
-            </div>
-          ))}
-        </div>
-        <div className="text-center">
-          <Link
-            href="/signup"
-            className="inline-flex items-center gap-2 text-sm font-semibold bg-gradient-to-r from-emerald to-emerald-light text-white px-6 py-3 rounded-xl shadow-lg shadow-emerald/20 hover:opacity-90 transition-opacity"
-          >
-            Create your free account <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="max-w-3xl mx-auto px-4 py-14">
-        <div className="text-center mb-10">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-(--foreground) mb-2">Frequently Asked Questions</h2>
-          <p className="text-(--muted)">Everything you need to know before you start.</p>
-        </div>
-        <div className="space-y-3">
-          {FAQS.map(({ q, a }) => (
-            <details key={q} className="group glass-card rounded-xl p-5 [&_summary::-webkit-details-marker]:hidden">
-              <summary className="flex items-center justify-between gap-4 cursor-pointer font-display font-semibold text-(--foreground) list-none">
-                {q}
-                <ChevronDown className="w-4 h-4 text-emerald flex-shrink-0 transition-transform group-open:rotate-180" />
-              </summary>
-              <p className="text-sm text-(--muted) mt-3 leading-relaxed">{a}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-
       {/* CTA */}
-      <section className="max-w-5xl mx-auto px-4 pb-20">
-        <div className="relative overflow-hidden glass-strong rounded-2xl px-6 py-14 text-center">
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{ background: 'radial-gradient(circle at 50% 0%, rgba(45,212,167,0.18), transparent 50%)' }}
-          />
-          <div className="relative">
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-(--foreground) mb-3">
-              Still have questions?
-            </h2>
-            <p className="text-(--muted) mb-8 max-w-xl mx-auto">
-              The best way to understand StockSense AI is to try it — sign up and analyze your first stock in seconds.
-            </p>
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 text-sm font-semibold bg-gradient-to-r from-emerald to-emerald-light text-white px-6 py-3 rounded-xl shadow-lg shadow-emerald/20 hover:opacity-90 transition-opacity"
-            >
-              Get Started Free <ArrowRight className="w-4 h-4" />
+      <section className="section wrap" style={{ paddingTop: 0 }}>
+        <div className="cta-band">
+          <h2>Still have questions?</h2>
+          <p>The best way to understand StockSense AI is to try it — sign up and analyze your first stock in seconds.</p>
+          <div className="row">
+            <Link href="/signup" className="btn btn-primary">
+              Get Started Free <span className="arrow"><ArrowRight width={16} height={16} /></span>
             </Link>
           </div>
         </div>

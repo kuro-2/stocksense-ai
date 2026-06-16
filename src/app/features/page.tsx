@@ -1,9 +1,10 @@
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { Reveal } from '@/components/ui/Reveal';
 import Link from 'next/link';
 import {
   Brain, BarChart3, Gauge, Newspaper, Star, Wallet, Globe2,
-  SlidersHorizontal, Bell, FlaskConical, Sparkles, ArrowRight,
+  SlidersHorizontal, Bell, FlaskConical, ArrowRight,
   TrendingUp, Target, AlertTriangle, ShieldAlert, Activity,
 } from 'lucide-react';
 
@@ -21,7 +22,7 @@ const CORE_FEATURES = [
   {
     icon: Gauge,
     title: 'F&O Strategy Ideas',
-    desc: 'Get a plain-language options idea — suggested strike, expiry, and the reasoning behind it — alongside a prominent risk warning so you understand what you’re getting into.',
+    desc: 'Get a plain-language options idea — suggested strike, expiry, and the reasoning behind it — alongside a prominent risk warning so you understand what you\'re getting into.',
   },
   {
     icon: Newspaper,
@@ -34,17 +35,17 @@ const ANALYSIS_DETAILS = [
   { icon: TrendingUp, title: 'Recommendation Card', desc: 'Buy/Sell/Hold, confidence score, target price, stop loss and suggested timeframe at a glance.' },
   { icon: Activity, title: 'Technical Panel', desc: 'RSI, moving averages, support & resistance, and an overall trend reading — bullish, bearish, or neutral.' },
   { icon: Target, title: 'F&O Panel', desc: 'A suggested options strategy with strike, expiry, and a clear explanation of the risk involved.' },
-  { icon: AlertTriangle, title: 'Risk Factors', desc: '3-5 specific risks the AI identified for this stock, based on its sector and recent news.' },
+  { icon: AlertTriangle, title: 'Risk Factors', desc: '3–5 specific risks the AI identified for this stock, based on its sector and recent news.' },
   { icon: ShieldAlert, title: 'AI Disclosure', desc: 'A persistent reminder that this is AI-generated, educational content — never investment advice.' },
   { icon: BarChart3, title: 'Price Chart', desc: 'An interactive price chart with 90 days of history, so you can see the trend for yourself.' },
 ];
 
 const PLATFORM_TOOLS = [
-  { icon: Star, title: 'Watchlist', href: '/watchlist', desc: 'Save stocks you’re tracking and see their latest price and recommendation in one list.' },
+  { icon: Star, title: 'Watchlist', href: '/watchlist', desc: 'Save stocks you\'re tracking and see their latest price and recommendation in one list.' },
   { icon: Wallet, title: 'Paper Portfolio', href: '/portfolio', desc: 'Buy and sell with virtual cash to practice strategies risk-free, and track your simulated returns.' },
   { icon: Globe2, title: 'Markets', href: '/markets', desc: 'A live overview of NSE & BSE indices and how each market sector is performing today.' },
   { icon: SlidersHorizontal, title: 'Screener', href: '/screener', desc: 'Filter the Nifty 50 by RSI, trend, and moving averages to quickly find stocks worth a closer look.' },
-  { icon: Bell, title: 'Price Alerts', href: '/alerts', desc: 'Set a target price for any stock and get an email the moment it’s crossed.' },
+  { icon: Bell, title: 'Price Alerts', href: '/alerts', desc: 'Set a target price for any stock and get an email the moment it\'s crossed.' },
   { icon: FlaskConical, title: 'Backtesting', href: '/backtest', desc: 'Run a simple strategy against historical data and compare it to a buy-and-hold baseline.' },
 ];
 
@@ -54,118 +55,97 @@ export default function FeaturesPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: 'radial-gradient(circle at 90% 0%, rgba(45,212,167,0.16), transparent 45%)',
-          }}
-        />
-        <div className="relative max-w-4xl mx-auto text-center px-4 pt-16 pb-14 md:pt-20 md:pb-16">
-          <div className="inline-flex items-center gap-2 mb-5 px-3 py-1 rounded-full glass-card text-xs font-medium text-emerald">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Features</span>
-          </div>
-          <h1 className="font-display text-3xl md:text-5xl font-bold mb-4 text-(--foreground)">
-            Everything you need to invest smarter
-          </h1>
-          <p className="text-(--muted) text-lg max-w-2xl mx-auto">
-            From instant AI analysis to portfolio tracking and price alerts — StockSense AI brings every
-            tool an Indian retail investor needs into one clean, free platform.
-          </p>
-        </div>
+      <section className="section wrap">
+        <p className="eyebrow">Features</p>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'clamp(40px,6vw,70px)', lineHeight: 1.0, letterSpacing: '-0.025em', marginTop: 'var(--s4)' }}>
+          Everything you need to<br /><em>invest smarter</em>
+        </h1>
+        <p className="lede" style={{ marginTop: 'var(--s5)', maxWidth: '52ch' }}>
+          From instant AI analysis to portfolio tracking and price alerts — StockSense AI brings every
+          tool an Indian retail investor needs into one clean, free platform.
+        </p>
       </section>
 
       {/* Core AI features */}
-      <section className="max-w-5xl mx-auto px-4 py-14">
-        <div className="text-center mb-10">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-(--foreground) mb-2">AI-Powered Stock Analysis</h2>
-          <p className="text-(--muted)">Search any NSE/BSE stock and get a full breakdown in seconds.</p>
+      <Reveal as="section" className="section wrap" delay={0.05}>
+        <div className="section-head">
+          <p className="eyebrow">AI analysis</p>
+          <h2 className="section-title">AI-Powered Stock Analysis</h2>
+          <p className="section-sub">Search any NSE/BSE stock and get a full breakdown in seconds.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--s4)', marginTop: 'var(--s6)' }}>
           {CORE_FEATURES.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="glass-card glass-card-hover rounded-2xl p-6">
-              <div className="w-11 h-11 bg-gradient-to-br from-emerald to-emerald-light rounded-lg flex items-center justify-center mb-4">
-                <Icon className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-display font-semibold text-(--foreground) mb-2">{title}</h3>
-              <p className="text-sm text-(--muted)">{desc}</p>
+            <div key={title} className="panel panel-hover" style={{ padding: 'var(--s6)' }}>
+              <span className="glyph" style={{ marginBottom: 'var(--s4)', display: 'inline-grid' }}>
+                <Icon width={22} height={22} />
+              </span>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em' }}>{title}</h3>
+              <p style={{ marginTop: 'var(--s3)', color: 'var(--ink-soft)', fontSize: 15, lineHeight: 1.6 }}>{desc}</p>
             </div>
           ))}
         </div>
-      </section>
+      </Reveal>
 
       {/* Inside an analysis */}
-      <section className="max-w-5xl mx-auto px-4 py-14">
-        <div className="glass-card rounded-2xl p-6 md:p-10">
-          <div className="text-center mb-10">
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-(--foreground) mb-2">What&apos;s Inside Every Analysis</h2>
-            <p className="text-(--muted)">One page, six panels, zero guesswork.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {ANALYSIS_DETAILS.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="rounded-xl glass-strong p-5">
-                <div className="w-10 h-10 bg-emerald-light/15 rounded-full flex items-center justify-center mb-3">
-                  <Icon className="w-5 h-5 text-emerald" />
-                </div>
-                <h3 className="font-display font-semibold text-(--foreground) mb-1">{title}</h3>
-                <p className="text-sm text-(--muted)">{desc}</p>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-8">
-            <Link
-              href="/analysis/RELIANCE"
-              className="inline-flex items-center gap-2 text-sm font-semibold bg-gradient-to-r from-emerald to-emerald-light text-white px-5 py-2.5 rounded-xl shadow-md shadow-emerald/20 hover:opacity-90 transition-opacity"
-            >
-              See a live example <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+      <Reveal as="section" className="section wrap" delay={0.05}>
+        <div className="section-head">
+          <p className="eyebrow">Every analysis page</p>
+          <h2 className="section-title">What&apos;s Inside Every Analysis</h2>
+          <p className="section-sub">One page, six panels, zero guesswork.</p>
         </div>
-      </section>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--s4)', marginTop: 'var(--s6)' }}>
+          {ANALYSIS_DETAILS.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="panel" style={{ padding: 'var(--s5)' }}>
+              <span className="glyph" style={{ marginBottom: 'var(--s3)', display: 'inline-grid' }}>
+                <Icon width={20} height={20} />
+              </span>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 17, letterSpacing: '-0.01em' }}>{title}</h3>
+              <p style={{ marginTop: 'var(--s2)', color: 'var(--ink-soft)', fontSize: 14.5, lineHeight: 1.6 }}>{desc}</p>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 'var(--s6)' }}>
+          <Link href="/analysis/RELIANCE" className="btn btn-primary">
+            See a live example <span className="arrow"><ArrowRight width={16} height={16} /></span>
+          </Link>
+        </div>
+      </Reveal>
 
       {/* Platform tools */}
-      <section className="max-w-5xl mx-auto px-4 py-14">
-        <div className="text-center mb-10">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-(--foreground) mb-2">A Complete Investing Toolkit</h2>
-          <p className="text-(--muted)">Beyond analysis — track, plan, and practice, all in one place.</p>
+      <Reveal as="section" className="section wrap" delay={0.05}>
+        <div className="section-head">
+          <p className="eyebrow">The platform</p>
+          <h2 className="section-title">A Complete Investing Toolkit</h2>
+          <p className="section-sub">Beyond analysis — track, plan, and practice, all in one place.</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--s4)', marginTop: 'var(--s6)' }}>
           {PLATFORM_TOOLS.map(({ icon: Icon, title, href, desc }) => (
-            <Link key={title} href={href} className="glass-card glass-card-hover rounded-2xl p-6 group">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald to-emerald-light flex items-center justify-center mb-4">
-                <Icon className="w-5 h-5 text-white" />
+            <Link key={title} href={href} className="panel panel-hover" style={{ padding: 'var(--s5)', display: 'flex', gap: 'var(--s4)', alignItems: 'flex-start', textDecoration: 'none' }}>
+              <span className="glyph" style={{ flexShrink: 0 }}>
+                <Icon width={20} height={20} />
+              </span>
+              <div>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 17, letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {title}
+                  <ArrowRight width={14} height={14} style={{ color: 'var(--accent)', opacity: 0.7 }} />
+                </h3>
+                <p style={{ marginTop: 'var(--s2)', color: 'var(--ink-soft)', fontSize: 14, lineHeight: 1.5 }}>{desc}</p>
               </div>
-              <h3 className="font-display font-semibold text-(--foreground) mb-1 flex items-center gap-1.5">
-                {title}
-                <ArrowRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-emerald" />
-              </h3>
-              <p className="text-sm text-(--muted)">{desc}</p>
             </Link>
           ))}
         </div>
-      </section>
+      </Reveal>
 
       {/* CTA */}
-      <section className="max-w-5xl mx-auto px-4 pb-20">
-        <div className="relative overflow-hidden glass-strong rounded-2xl px-6 py-14 text-center">
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{ background: 'radial-gradient(circle at 50% 0%, rgba(45,212,167,0.18), transparent 50%)' }}
-          />
-          <div className="relative">
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-(--foreground) mb-3">
-              Ready to try it on your own watchlist?
-            </h2>
-            <p className="text-(--muted) mb-8 max-w-xl mx-auto">
-              Create a free account and get instant access to every feature above — no credit card required.
-            </p>
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 text-sm font-semibold bg-gradient-to-r from-emerald to-emerald-light text-white px-6 py-3 rounded-xl shadow-lg shadow-emerald/20 hover:opacity-90 transition-opacity"
-            >
-              Get Started Free <ArrowRight className="w-4 h-4" />
+      <section className="section wrap" style={{ paddingTop: 0 }}>
+        <div className="cta-band">
+          <h2>Ready to try it on your own watchlist?</h2>
+          <p>Create a free account and get instant access to every feature above — no credit card required.</p>
+          <div className="row">
+            <Link href="/signup" className="btn btn-primary">
+              Get Started Free <span className="arrow"><ArrowRight width={16} height={16} /></span>
             </Link>
+            <Link href="/how-it-works" className="btn btn-ghost">How it works</Link>
           </div>
         </div>
       </section>

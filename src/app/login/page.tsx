@@ -2,8 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
-import { Loader2 } from 'lucide-react';
+import { Loader2, TrendingUp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Navbar } from '@/components/layout/Navbar';
 
@@ -30,56 +29,66 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <Link href="/" className="inline-flex items-center gap-2.5 font-display font-bold text-2xl text-(--foreground)">
-              <Image src="/logo.svg" alt="StockSense AI" width={32} height={32} priority />
-              <span>StockSense AI</span>
+      <div className="flex-1 flex items-center justify-center px-4" style={{ paddingBlock: 'var(--s9)' }}>
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          {/* Brand mark */}
+          <div style={{ textAlign: 'center', marginBottom: 'var(--s7)' }}>
+            <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+              <span className="mark" style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--accent-soft)', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center', border: '1px solid var(--accent-soft)' }}>
+                <TrendingUp width={20} height={20} strokeWidth={2.5} />
+              </span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em', color: 'var(--foreground)' }}>
+                StockSense AI
+              </span>
             </Link>
-            <p className="text-(--muted) mt-2">Sign in to your account</p>
+            <p style={{ marginTop: 'var(--s3)', color: 'var(--ink-soft)', fontSize: 15 }}>Sign in to your account</p>
           </div>
 
-          <div className="glass-card rounded-2xl p-8">
-            <form onSubmit={handleLogin} className="space-y-4">
+          {/* Form card */}
+          <div className="panel" style={{ padding: 'var(--s7)' }}>
+            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s4)' }}>
               {error && (
-                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400">{error}</div>
+                <div style={{ padding: '12px 14px', background: 'rgba(200,60,60,0.1)', border: '1px solid rgba(200,60,60,0.25)', borderRadius: 10, fontSize: 14, color: 'var(--down)' }}>
+                  {error}
+                </div>
               )}
-              <div>
-                <label className="block text-sm font-medium text-(--foreground) mb-1">Email</label>
+
+              <div className="field">
+                <label>Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
-                  className="w-full bg-(--surface) border border-(--surface-border) rounded-lg px-3 py-2.5 text-sm text-(--foreground) placeholder:text-(--muted) focus:outline-none focus:border-emerald transition-colors"
                   placeholder="you@example.com"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-(--foreground) mb-1">Password</label>
+
+              <div className="field">
+                <label>Password</label>
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
-                  className="w-full bg-(--surface) border border-(--surface-border) rounded-lg px-3 py-2.5 text-sm text-(--foreground) placeholder:text-(--muted) focus:outline-none focus:border-emerald transition-colors"
                   placeholder="••••••••"
                 />
               </div>
+
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-emerald to-emerald-light text-white rounded-lg px-4 py-2.5 text-sm font-semibold shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2"
+                className="btn btn-primary"
+                style={{ width: '100%', justifyContent: 'center', marginTop: 'var(--s2)', opacity: loading ? 0.6 : 1 }}
               >
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {loading && <Loader2 width={16} height={16} style={{ animation: 'spin 1s linear infinite' }} />}
                 Sign in
               </button>
             </form>
 
-            <p className="text-center text-sm text-(--muted) mt-6">
+            <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--ink-mute)', marginTop: 'var(--s5)' }}>
               Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-emerald font-medium hover:underline">Sign up</Link>
+              <Link href="/signup" style={{ color: 'var(--accent)', fontWeight: 600 }}>Sign up free</Link>
             </p>
           </div>
         </div>

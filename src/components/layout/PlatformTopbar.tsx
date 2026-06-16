@@ -8,16 +8,19 @@ import { ProfileMenu } from './ProfileMenu';
 
 export function PlatformTopbar({ onOpenMobileSidebar }: { onOpenMobileSidebar: () => void }) {
   return (
-    <header className="sticky top-0 z-30 h-16 glass-panel flex items-center gap-3 px-4 sm:px-6">
+    <header
+      className="sticky top-0 z-30 flex items-center gap-3 px-4 sm:px-6 border-b border-(--sidebar-border)"
+      style={{ height: 66, background: 'var(--sidebar-bg)', backdropFilter: 'blur(16px)' }}
+    >
       <button
         onClick={onOpenMobileSidebar}
-        className="lg:hidden p-2 rounded-lg text-(--muted) hover:text-emerald hover:bg-(--surface-hover) transition-colors flex-shrink-0"
+        className="lg:hidden icon-btn flex-shrink-0"
         aria-label="Open menu"
       >
-        <Menu className="w-5 h-5" />
+        <Menu width={20} height={20} />
       </button>
 
-      <div className="flex-1 flex justify-center sm:justify-start">
+      <div className="flex-1 flex justify-start">
         <QuickSearch />
       </div>
 
@@ -25,9 +28,9 @@ export function PlatformTopbar({ onOpenMobileSidebar }: { onOpenMobileSidebar: (
         <Link
           href="/history"
           title="Analysis history"
-          className="inline-flex items-center justify-center w-9 h-9 rounded-lg glass-card glass-card-hover transition-colors text-slate-600 dark:text-slate-300 hover:text-emerald"
+          className="icon-btn"
         >
-          <HistoryIcon className="w-4 h-4" />
+          <HistoryIcon width={18} height={18} />
         </Link>
         <ThemeToggle />
         <ProfileMenu />

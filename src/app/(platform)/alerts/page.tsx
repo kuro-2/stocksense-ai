@@ -1,8 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Badge } from '@/components/ui/Badge';
-import { Plus, Trash2, Bell, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Bell, Loader2, CheckCircle } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
 import type { SearchResult } from '@/types/stock';
 
@@ -29,7 +28,15 @@ export default function AlertsPage() {
   const [condition, setCondition] = useState<'ABOVE' | 'BELOW'>('ABOVE');
   const [targetPrice, setTargetPrice] = useState('');
   const [adding, setAdding] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    if (toastRef.current) clearTimeout(toastRef.current);
+    toastRef.current = setTimeout(() => setToast(null), 3000);
+  }
 
   async function fetchAlerts() {
     setLoading(true);
@@ -74,19 +81,27 @@ export default function AlertsPage() {
     setQuery('');
     setTargetPrice('');
     setAdding(false);
+    showToast(`Alert set for ${selected.symbol}`);
     fetchAlerts();
   }
 
-  async function handleRemove(id: string) {
+  async function handleRemove(id: string, symbol: string) {
     await fetch(`/api/alerts/${id}`, { method: 'DELETE' });
     setItems(prev => prev.filter(i => i.id !== id));
+    showToast(`Alert for ${symbol} removed`);
   }
 
   if (unauthorized) {
     return (
-      <div className="max-w-4xl mx-auto py-16 text-center text-(--muted)">
-        <p className="font-medium mb-2">Please log in to manage price alerts</p>
-        <Link href="/login" className="text-emerald font-medium hover:underline">Go to login</Link>
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: 'var(--s9) var(--s4)', textAlign: 'center' }}>
+        <div className="empty">
+          <div className="e-ic"><Bell width={30} height={30} /></div>
+          <h3>Login required</h3>
+          <p>Please log in to manage your price alerts.</p>
+          <div style={{ marginTop: 'var(--s5)' }}>
+            <Link href="/login" className="btn btn-primary">Go to login</Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -95,135 +110,170 @@ export default function AlertsPage() {
   const triggeredAlerts = items.filter(a => !a.isActive);
 
   return (
-    <div className="max-w-3xl mx-auto">
-        <div className="flex items-center gap-2 mb-2">
-          <Bell className="w-6 h-6 text-emerald" />
-          <h1 className="font-display text-2xl font-bold text-(--foreground)">Price Alerts</h1>
+    <div style={{ maxWidth: 760 }}>
+      {/* Page header */}
+      <div className="view-head" style={{ marginBottom: 'var(--s6)' }}>
+        <div>
+          <div className="view-title">
+            <span className="ic"><Bell width={21} height={21} /></span>
+            <h1>Price Alerts</h1>
+          </div>
+          <p className="view-sub">Get notified by email when a stock crosses your target price.</p>
         </div>
-        <p className="text-sm text-(--muted) mb-6">
-          Get notified by email when a stock crosses your target price.
-        </p>
+      </div>
 
-        <form onSubmit={handleAdd} className="glass-card rounded-xl p-4 mb-6 flex flex-wrap items-end gap-3">
-          <div className="relative flex-1 min-w-[200px]">
-            <label className="block text-xs font-medium text-(--muted) mb-1">Stock</label>
+      {/* Add alert form */}
+      <form onSubmit={handleAdd} className="alert-form" style={{ marginBottom: 'var(--s6)' }}>
+        <div className="alert-grid">
+          {/* Stock search */}
+          <div className="field" style={{ position: 'relative' }}>
+            <label>Stock</label>
             <input
               type="text"
               value={selected ? `${selected.symbol} — ${selected.name}` : query}
               onChange={e => { setSelected(null); setQuery(e.target.value); setSearchOpen(true); }}
               onFocus={() => setSearchOpen(true)}
-              placeholder="Search stock..."
-              className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm w-full bg-transparent focus:outline-none focus:border-emerald"
+              placeholder="Search for a stock..."
             />
             {searchOpen && results.length > 0 && !selected && (
-              <div className="absolute top-full left-0 right-0 mt-1 glass-strong rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+              <div
+                style={{
+                  position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+                  background: 'var(--panel)', border: '1px solid var(--line-2)',
+                  borderRadius: 'var(--radius-sm)', boxShadow: 'var(--shadow)', zIndex: 20,
+                  maxHeight: 240, overflowY: 'auto',
+                }}
+                className="thin-scrollbar"
+              >
                 {results.map(r => (
                   <button
                     key={`${r.exchange}:${r.symbol}`}
                     type="button"
                     onClick={() => { setSelected(r); setSearchOpen(false); }}
-                    className="w-full text-left px-3 py-2 hover:bg-(--surface-hover) text-sm border-b border-(--surface-border) last:border-0"
+                    style={{
+                      width: '100%', textAlign: 'left', padding: '11px 14px',
+                      borderBottom: '1px solid var(--line)', background: 'none', cursor: 'pointer',
+                      transition: 'background 0.14s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--panel-2)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                   >
-                    <span className="font-semibold text-(--foreground)">{r.symbol}</span>
-                    <span className="ml-2 text-(--muted)">{r.name}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 14 }}>{r.symbol}</span>
+                    <span style={{ marginLeft: 10, fontSize: 13, color: 'var(--ink-mute)' }}>{r.name}</span>
                   </button>
                 ))}
               </div>
             )}
           </div>
-          <div>
-            <label className="block text-xs font-medium text-(--muted) mb-1">Condition</label>
-            <select
-              value={condition} onChange={e => setCondition(e.target.value as 'ABOVE' | 'BELOW')}
-              className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm bg-transparent focus:outline-none focus:border-emerald"
-            >
+
+          {/* Condition */}
+          <div className="field">
+            <label>Condition</label>
+            <select value={condition} onChange={e => setCondition(e.target.value as 'ABOVE' | 'BELOW')}>
               <option value="ABOVE">Goes above</option>
               <option value="BELOW">Goes below</option>
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-(--muted) mb-1">Target Price (₹)</label>
+
+          {/* Target price */}
+          <div className="field">
+            <label>Target Price (₹)</label>
             <input
-              type="number" min={0} step={0.05} value={targetPrice} onChange={e => setTargetPrice(e.target.value)}
+              type="number" min={0} step={0.05} value={targetPrice}
+              onChange={e => setTargetPrice(e.target.value)}
               required placeholder="0.00"
-              className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm w-32 bg-transparent focus:outline-none focus:border-emerald"
             />
           </div>
-          <button
-            type="submit" disabled={adding || !selected || !targetPrice}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
-          >
-            {adding && <Loader2 className="w-3 h-3 animate-spin" />} <Plus className="w-4 h-4" /> Add Alert
-          </button>
-        </form>
 
-        {loading && (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          {/* Submit */}
+          <div className="af-add">
+            <button
+              type="submit"
+              disabled={adding || !selected || !targetPrice}
+              className="btn btn-primary"
+              style={{ width: '100%', justifyContent: 'center', opacity: (adding || !selected || !targetPrice) ? 0.5 : 1 }}
+            >
+              {adding
+                ? <Loader2 width={15} height={15} style={{ animation: 'spin 1s linear infinite' }} />
+                : <Plus width={16} height={16} />
+              }
+              Add Alert
+            </button>
           </div>
-        )}
+        </div>
+      </form>
 
-        {!loading && items.length === 0 && (
-          <div className="text-center py-16 text-(--muted)">
-            <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="font-medium">No price alerts yet</p>
-            <p className="text-sm mt-1">Add one above to get notified when a stock hits your target</p>
-          </div>
-        )}
+      {/* Loading */}
+      {loading && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--s8) 0' }}>
+          <Loader2 width={28} height={28} style={{ animation: 'spin 1s linear infinite', color: 'var(--accent)' }} />
+        </div>
+      )}
 
-        {!loading && activeAlerts.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-sm font-semibold text-(--muted) mb-2">Active</h2>
-            <div className="glass-card rounded-xl overflow-hidden divide-y divide-(--surface-border)">
-              {activeAlerts.map(a => (
-                <div key={a.id} className="flex items-center justify-between px-4 py-3">
-                  <div>
-                    <p className="font-semibold text-(--foreground)">{a.symbol}</p>
-                    <p className="text-xs text-(--muted)">{a.stockName}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="info">
-                      {a.condition === 'ABOVE' ? '≥' : '≤'} {formatINR(a.targetPrice)}
-                    </Badge>
-                    <button
-                      onClick={() => handleRemove(a.id)}
-                      className="p-1.5 text-(--muted) hover:text-red-500 transition-colors rounded"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+      {/* Empty state */}
+      {!loading && items.length === 0 && (
+        <div className="empty">
+          <div className="e-ic"><Bell width={30} height={30} /></div>
+          <h3>No price alerts yet</h3>
+          <p>Add one above to get notified when a stock hits your target.</p>
+        </div>
+      )}
+
+      {/* Active alerts */}
+      {!loading && activeAlerts.length > 0 && (
+        <div style={{ marginBottom: 'var(--s6)' }}>
+          <p className="eyebrow" style={{ marginBottom: 'var(--s3)' }}>Active</p>
+          <div className="alerts-list">
+            {activeAlerts.map(a => (
+              <div key={a.id} className="alert-card">
+                <div className="badge-sym">{a.symbol.slice(0, 4)}</div>
+                <div>
+                  <p className="ac-name">{a.symbol}</p>
+                  <p className="ac-cond">{a.stockName} · {a.condition === 'ABOVE' ? 'Price goes above' : 'Price goes below'}</p>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {!loading && triggeredAlerts.length > 0 && (
-          <div>
-            <h2 className="text-sm font-semibold text-(--muted) mb-2">Triggered</h2>
-            <div className="glass-card rounded-xl overflow-hidden divide-y divide-(--surface-border)">
-              {triggeredAlerts.map(a => (
-                <div key={a.id} className="flex items-center justify-between px-4 py-3 opacity-70">
-                  <div>
-                    <p className="font-semibold text-(--foreground)">{a.symbol}</p>
-                    <p className="text-xs text-(--muted)">{a.stockName}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="neutral">
-                      {a.condition === 'ABOVE' ? '≥' : '≤'} {formatINR(a.targetPrice)} — Triggered
-                    </Badge>
-                    <button
-                      onClick={() => handleRemove(a.id)}
-                      className="p-1.5 text-(--muted) hover:text-red-500 transition-colors rounded"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                <div className="ac-target">
+                  <p className="k">Target</p>
+                  <p className="v">{formatINR(a.targetPrice)}</p>
                 </div>
-              ))}
-            </div>
+                <button onClick={() => handleRemove(a.id, a.symbol)} className="ac-del" title="Remove alert">
+                  <Trash2 width={17} height={17} />
+                </button>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Triggered alerts */}
+      {!loading && triggeredAlerts.length > 0 && (
+        <div>
+          <p className="eyebrow" style={{ marginBottom: 'var(--s3)' }}>Triggered</p>
+          <div className="alerts-list">
+            {triggeredAlerts.map(a => (
+              <div key={a.id} className="alert-card" style={{ opacity: 0.65 }}>
+                <div className="badge-sym" style={{ background: 'var(--bg-2)' }}>{a.symbol.slice(0, 4)}</div>
+                <div>
+                  <p className="ac-name">{a.symbol}</p>
+                  <p className="ac-cond">{a.stockName} · {a.condition === 'ABOVE' ? '≥' : '≤'} {formatINR(a.targetPrice)} — Triggered</p>
+                </div>
+                <div className="ac-target">
+                  <p className="k">Target</p>
+                  <p className="v">{formatINR(a.targetPrice)}</p>
+                </div>
+                <button onClick={() => handleRemove(a.id, a.symbol)} className="ac-del" title="Remove alert">
+                  <Trash2 width={17} height={17} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      <div className={`toast${toast ? ' show' : ''}`}>
+        <CheckCircle width={17} height={17} />
+        {toast}
+      </div>
     </div>
   );
 }

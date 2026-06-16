@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Loader2, TrendingUp, TrendingDown, Minus, SearchX, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Loader2, TrendingUp, TrendingDown, Minus, Flame, ArrowRight, Search } from 'lucide-react';
 import { formatINR, formatPercent } from '@/lib/utils';
 
 interface ScreenerStock {
@@ -15,20 +16,16 @@ interface ScreenerStock {
   sector: string;
 }
 
-const PAGE_SIZE = 10;
-
-const TREND_CONFIG = {
-  BULLISH: { icon: TrendingUp, label: 'Bullish', className: 'text-green-600 bg-green-50' },
-  BEARISH: { icon: TrendingDown, label: 'Bearish', className: 'text-red-600 bg-red-50' },
-  NEUTRAL: { icon: Minus, label: 'Neutral', className: 'text-(--muted) bg-(--surface-hover)' },
-};
+const POPULAR = ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'SBIN', 'BAJFINANCE', 'WIPRO', 'ICICIBANK', 'LT', 'AXISBANK'];
+const PAGE_SIZE = 12;
 
 export default function AnalysisLandingPage() {
+  const router = useRouter();
   const [stocks, setStocks] = useState<ScreenerStock[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [filter, setFilter] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -46,119 +43,134 @@ export default function AnalysisLandingPage() {
   }, []);
 
   const filtered = useMemo(() => {
-    const q = filter.trim().toUpperCase();
+    const q = query.trim().toUpperCase();
     if (!q) return stocks;
     return stocks.filter(s => s.symbol.toUpperCase().includes(q) || s.name.toUpperCase().includes(q));
-  }, [stocks, filter]);
+  }, [stocks, query]);
 
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
 
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (query.trim()) router.push(`/analysis/${query.trim().toUpperCase()}`);
+  }
+
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="font-display text-2xl md:text-3xl font-bold text-(--foreground)">Stock Analysis</h1>
-        <p className="text-(--muted) text-sm mt-1">Browse Nifty 50 companies or jump straight to any NSE/BSE stock.</p>
-      </div>
+    <div style={{ maxWidth: 900 }}>
+      {/* Editorial hero */}
+      <section className="an-hero">
+        <h2>
+          Read the market,<br /><em>stock by stock</em>
+        </h2>
+        <p className="an-sub">
+          Search any NSE/BSE stock for an instant AI recommendation, technical breakdown, and F&amp;O ideas.
+        </p>
 
-      {/* Filter bar */}
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <input
-          value={filter}
-          onChange={e => { setFilter(e.target.value); setVisibleCount(PAGE_SIZE); }}
-          placeholder="Filter the list by name or symbol..."
-          className="w-full sm:w-72 px-3 py-2 rounded-lg glass-card text-sm outline-none text-(--foreground) placeholder-slate-400"
-        />
-        {!loading && !error && (
-          <span className="text-xs text-(--muted) whitespace-nowrap">
-            Showing {visible.length} of {filtered.length}
-          </span>
-        )}
-      </div>
-
-      {/* Loading */}
-      {loading && (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald" />
-        </div>
-      )}
-
-      {/* Error */}
-      {error && (
-        <div className="text-center py-16 text-(--muted)">
-          <p className="font-medium text-red-500">{error}</p>
-          <p className="text-sm mt-1">Try refreshing the page, or search for a stock directly above.</p>
-        </div>
-      )}
-
-      {/* Empty filter result */}
-      {!loading && !error && filtered.length === 0 && (
-        <div className="text-center py-16 text-(--muted)">
-          <SearchX className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p className="font-medium">No stocks match &quot;{filter}&quot;</p>
-          <p className="text-sm mt-1">Try a different name or symbol, or use the search bar above.</p>
-        </div>
-      )}
-
-      {/* Card grid */}
-      {!loading && !error && filtered.length > 0 && (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {visible.map(s => {
-              const trend = TREND_CONFIG[s.trend] ?? TREND_CONFIG.NEUTRAL;
-              const TrendIcon = trend.icon;
-              const up = s.changePercent >= 0;
-              return (
-                <Link
-                  key={s.symbol}
-                  href={`/analysis/${s.symbol}`}
-                  className="glass-card glass-card-hover rounded-2xl p-4 flex flex-col gap-3 group"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-display font-semibold text-(--foreground) truncate">{s.symbol}</p>
-                      <p className="text-xs text-(--muted) truncate">{s.name}</p>
-                    </div>
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${trend.className}`}>
-                      <TrendIcon className="w-3 h-3" />
-                      {trend.label}
-                    </span>
-                  </div>
-
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <p className="font-mono text-lg font-semibold text-(--foreground)">{formatINR(s.price)}</p>
-                      <p className={`text-xs font-medium ${up ? 'text-green-600' : 'text-red-600'}`}>
-                        {up ? '▲' : '▼'} {formatPercent(Math.abs(s.changePercent))}
-                      </p>
-                    </div>
-                    <span className="text-xs text-(--muted)">RSI {s.rsi.toFixed(0)}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-(--surface-border)">
-                    <span className="text-xs text-(--muted) truncate">{s.sector}</span>
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
-                      Analyze <ArrowRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-
-          {hasMore && (
-            <div className="flex justify-center mt-6">
-              <button
-                onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
-                className="px-5 py-2.5 rounded-xl glass-card glass-card-hover text-sm font-medium text-(--foreground) hover:text-emerald transition-colors"
-              >
-                Load more companies
+        <div className="an-search-wrap">
+          <form onSubmit={handleSearch}>
+            <div className="an-search">
+              <Search width={19} height={19} style={{ flexShrink: 0 }} />
+              <input
+                value={query}
+                onChange={e => { setQuery(e.target.value); setVisibleCount(PAGE_SIZE); }}
+                placeholder="Search by name or symbol — e.g. RELIANCE, TCS..."
+              />
+              <button type="submit" className="btn btn-primary" style={{ padding: '8px 20px', fontSize: 14, flexShrink: 0 }}>
+                Analyze <span className="arrow"><ArrowRight width={15} height={15} /></span>
               </button>
             </div>
+          </form>
+        </div>
+      </section>
+
+      {/* Popular chips */}
+      <div className="popular">
+        <p className="lbl">
+          <Flame width={18} height={18} />
+          Popular stocks
+        </p>
+        <div className="grid">
+          {POPULAR.map(s => (
+            <Link key={s} href={`/analysis/${s}`} className="chip">{s}</Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Nifty 50 grid */}
+      <div className="recent" style={{ marginTop: 'var(--s9)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18 }}>
+            {query ? `Results for "${query}"` : 'Nifty 50'}
+          </p>
+          {!loading && !error && (
+            <span className="mono" style={{ fontSize: 12, color: 'var(--ink-mute)' }}>
+              {visible.length} of {filtered.length}
+            </span>
           )}
-        </>
-      )}
+        </div>
+
+        {loading && (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--s9) 0' }}>
+            <Loader2 width={30} height={30} style={{ animation: 'spin 1s linear infinite', color: 'var(--accent)' }} />
+          </div>
+        )}
+
+        {error && (
+          <div style={{ textAlign: 'center', padding: 'var(--s8) 0', color: 'var(--ink-soft)' }}>
+            <p style={{ color: 'var(--down)' }}>{error}</p>
+            <p style={{ fontSize: 14, marginTop: 8 }}>Try refreshing the page or search for a stock directly above.</p>
+          </div>
+        )}
+
+        {!loading && !error && filtered.length === 0 && (
+          <div className="empty" style={{ marginTop: 'var(--s6)' }}>
+            <div className="e-ic">
+              <Minus width={30} height={30} />
+            </div>
+            <h3>No stocks match &ldquo;{query}&rdquo;</h3>
+            <p>Try a different name or symbol, or search directly above.</p>
+          </div>
+        )}
+
+        {!loading && !error && visible.length > 0 && (
+          <>
+            <div className="row">
+              {visible.map(s => {
+                const up = s.changePercent >= 0;
+                const TrendIcon = s.trend === 'BULLISH' ? TrendingUp : s.trend === 'BEARISH' ? TrendingDown : Minus;
+                const verdictClass = s.trend === 'BULLISH' ? 'vp-buy' : s.trend === 'BEARISH' ? 'vp-sell' : 'vp-hold';
+                const verdictLabel = s.trend === 'BULLISH' ? 'Bullish' : s.trend === 'BEARISH' ? 'Bearish' : 'Neutral';
+                return (
+                  <Link key={s.symbol} href={`/analysis/${s.symbol}`} className="recent-card" style={{ textDecoration: 'none' }}>
+                    <div className="t">
+                      <span className="sym">{s.symbol}</span>
+                      <span className={`verdict-pill ${verdictClass}`}>{verdictLabel}</span>
+                    </div>
+                    <p style={{ fontSize: 12, color: 'var(--ink-mute)', marginTop: 4 }}>{s.name}</p>
+                    <p className="price">{formatINR(s.price)}</p>
+                    <div className="meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span className={up ? 'up' : 'down'} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <TrendIcon width={11} height={11} />
+                        {formatPercent(Math.abs(s.changePercent))}
+                      </span>
+                      <span>RSI {s.rsi.toFixed(0)}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {hasMore && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--s6)' }}>
+                <button onClick={() => setVisibleCount(c => c + PAGE_SIZE)} className="btn btn-ghost">
+                  Load more
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

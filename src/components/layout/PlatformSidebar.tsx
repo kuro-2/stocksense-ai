@@ -1,11 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Star, Wallet, Globe2, SlidersHorizontal,
-  Bell, FlaskConical, LineChart, ChevronsLeft, ChevronsRight, X, GitCompare, Rocket,
+  Bell, FlaskConical, LineChart, PanelLeftClose, PanelLeft, X, GitCompare, Rocket, TrendingUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -34,7 +33,6 @@ export function PlatformSidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
 
   return (
     <>
-      {/* Mobile overlay */}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
@@ -44,29 +42,42 @@ export function PlatformSidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
 
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-full glass-panel flex flex-col transition-all duration-300 ease-in-out',
+          'fixed top-0 left-0 z-50 h-full flex flex-col transition-all duration-300 ease-in-out',
+          'border-r border-(--sidebar-border)',
           'lg:translate-x-0',
-          collapsed ? 'w-[76px]' : 'w-64',
+          collapsed ? 'w-[72px]' : 'w-60',
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
+        style={{ background: 'var(--sidebar-bg)', backdropFilter: 'blur(16px)' }}
       >
-        {/* Logo / brand */}
-        <div className={cn('flex items-center h-16 px-4 border-b border-(--sidebar-border)', collapsed ? 'justify-center' : 'justify-between')}>
-          <Link href="/dashboard" className="flex items-center gap-2.5 font-display font-bold text-lg text-(--foreground) overflow-hidden">
-            <Image src="/logo.svg" alt="StockSense AI" width={26} height={26} className="flex-shrink-0" />
-            {!collapsed && <span className="whitespace-nowrap">StockSense AI</span>}
+        {/* Brand */}
+        <div
+          className={cn(
+            'flex items-center px-3 border-b border-(--sidebar-border)',
+            collapsed ? 'justify-center' : 'justify-between'
+          )}
+          style={{ height: 66 }}
+        >
+          <Link href="/dashboard" className="sb-brand overflow-hidden" title="StockSense AI">
+            <span className="mark" style={{ flexShrink: 0 }}>
+              <TrendingUp width={18} height={18} strokeWidth={2.5} />
+            </span>
+            {!collapsed && <span className="truncate">StockSense AI</span>}
           </Link>
-          <button
-            onClick={onCloseMobile}
-            className="lg:hidden p-1.5 rounded-lg text-(--muted) hover:text-emerald hover:bg-(--surface-hover) transition-colors"
-            aria-label="Close menu"
-          >
-            <X className="w-5 h-5" />
-          </button>
+
+          {!collapsed && (
+            <button
+              onClick={onCloseMobile}
+              className="lg:hidden sb-collapse"
+              aria-label="Close menu"
+            >
+              <X width={18} height={18} />
+            </button>
+          )}
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto thin-scrollbar py-4 px-3 space-y-1">
+        <nav className="flex-1 overflow-y-auto thin-scrollbar py-3 px-2 flex flex-col gap-0.5">
           {NAV_ITEMS.map(({ href, label, icon: Icon, match }) => {
             const active = match(pathname);
             return (
@@ -75,31 +86,26 @@ export function PlatformSidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
                 href={href}
                 onClick={onCloseMobile}
                 title={collapsed ? label : undefined}
-                className={cn(
-                  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all group relative',
-                  collapsed && 'justify-center',
-                  active
-                    ? 'bg-gradient-to-r from-emerald to-emerald-light text-white shadow-md shadow-emerald/20'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-(--surface-hover) hover:text-(--foreground)'
-                )}
+                className={cn('sb-item', active && 'active', collapsed && 'justify-center px-2')}
               >
-                <Icon className={cn('w-5 h-5 flex-shrink-0', active ? 'text-white' : 'text-slate-400 group-hover:text-emerald')} />
+                <Icon width={19} height={19} style={{ flexShrink: 0 }} />
                 {!collapsed && <span className="truncate">{label}</span>}
               </Link>
             );
           })}
         </nav>
 
-        {/* Collapse toggle (desktop only) */}
-        <div className="hidden lg:flex border-t border-(--sidebar-border) p-3">
+        {/* Collapse toggle — desktop only */}
+        <div className="hidden lg:block border-t border-(--sidebar-border) p-2">
           <button
             onClick={onToggleCollapse}
-            className={cn(
-              'flex items-center gap-2 w-full rounded-xl px-3 py-2.5 text-sm font-medium text-(--muted) hover:bg-(--surface-hover) hover:text-emerald transition-colors',
-              collapsed && 'justify-center'
-            )}
+            className={cn('sb-item w-full', collapsed && 'justify-center px-2')}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {collapsed ? <ChevronsRight className="w-5 h-5" /> : <><ChevronsLeft className="w-5 h-5" /> <span>Collapse</span></>}
+            {collapsed
+              ? <PanelLeft width={19} height={19} />
+              : <><PanelLeftClose width={19} height={19} /><span>Collapse</span></>
+            }
           </button>
         </div>
       </aside>

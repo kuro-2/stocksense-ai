@@ -1,11 +1,11 @@
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { StockSearch } from '@/components/stock/StockSearch';
+import { Reveal } from '@/components/ui/Reveal';
 import Link from 'next/link';
 import {
-  Search, Brain, LineChart, Sparkles, ShieldCheck, Gauge, BarChart3,
-  ArrowRight, Zap, Globe2, Bell, Star, Wallet, FlaskConical, SlidersHorizontal,
-  CheckCircle2,
+  Brain, BarChart3, Gauge, Star, Wallet, Globe2, SlidersHorizontal,
+  Bell, FlaskConical, ArrowRight, Check,
 } from 'lucide-react';
 
 const POPULAR_STOCKS = ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'SBIN', 'BAJFINANCE', 'WIPRO', 'ICICIBANK'];
@@ -17,14 +17,21 @@ const STATS = [
   { value: '100%', label: 'Free, always' },
 ];
 
-const FEATURE_HIGHLIGHTS = [
+const HOW_STEPS = [
+  { n: '01', title: 'Search any stock', desc: 'Type any NSE/BSE name or symbol — Nifty 50 and beyond.' },
+  { n: '02', title: 'AI fetches live data', desc: 'Real-time quote, 90-day history, and recent headlines pulled fresh.' },
+  { n: '03', title: 'Technicals computed locally', desc: 'RSI, SMAs, support/resistance — calculated from real data, never invented by the AI.' },
+  { n: '04', title: 'One clear recommendation', desc: 'Buy, Sell, or Hold with a target price, stop loss, and plain-English reasoning.' },
+];
+
+const FEATURES = [
   { icon: Brain, title: 'AI Recommendations', desc: 'Buy, sell, or hold — with a target price, stop loss, and plain-English reasoning behind every call.' },
   { icon: BarChart3, title: 'Technical Analysis', desc: 'RSI, SMA20/50/200, support & resistance, and trend — computed from real data, never hallucinated.' },
   { icon: Gauge, title: 'F&O Strategy Ideas', desc: 'Plain-language options ideas with strike, expiry, and clear risk warnings attached.' },
 ];
 
-const PLATFORM_TOOLS = [
-  { icon: Star, title: 'Watchlist', desc: 'Track the stocks you care about in one place.' },
+const TOOLS = [
+  { icon: Star, title: 'Watchlist', desc: 'Track stocks you care about in one place.' },
   { icon: Wallet, title: 'Paper Portfolio', desc: 'Practice trading with virtual cash, zero risk.' },
   { icon: Globe2, title: 'Markets', desc: 'Live NSE & BSE indices and sector moves.' },
   { icon: SlidersHorizontal, title: 'Screener', desc: 'Filter Nifty 50 by RSI, trend & moving averages.' },
@@ -32,234 +39,193 @@ const PLATFORM_TOOLS = [
   { icon: FlaskConical, title: 'Backtesting', desc: 'Test strategies against historical data.' },
 ];
 
+const CHECKLIST = [
+  'No jargon — every term explained in plain English',
+  'Real technical indicators, not AI guesses',
+  'Practice with a paper portfolio before risking real money',
+  'Set price alerts and never miss a move',
+  'F&O strategy ideas with clear risk disclosures',
+];
+
 export default function HomePage() {
   return (
     <div className="min-h-screen">
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(circle at 85% 10%, rgba(45,212,167,0.16), transparent 45%), radial-gradient(circle at 10% 90%, rgba(25,185,138,0.10), transparent 40%)',
-          }}
-        />
-        <div className="relative max-w-5xl mx-auto text-center px-4 pt-20 pb-16 md:pt-28 md:pb-24">
-          <div className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full glass-card text-xs font-medium text-emerald">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Powered by Google Gemini AI &middot; 100% Free</span>
-          </div>
-          <h1 className="font-display text-4xl md:text-6xl font-bold leading-tight mb-5 text-(--foreground)">
-            Analyze any Indian stock<br className="hidden md:block" /> with{' '}
-            <span className="brand-gradient-text">AI clarity</span>
-          </h1>
-          <p className="text-(--muted) text-lg mb-10 max-w-2xl mx-auto">
-            Instant AI-powered buy/sell recommendations, technical analysis, F&amp;O strategies, and news —
-            for any NSE/BSE stock, explained in plain English.
-          </p>
-          <div className="flex justify-center mb-8">
-            <StockSearch />
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 text-sm font-semibold bg-gradient-to-r from-emerald to-emerald-light text-white px-6 py-3 rounded-xl shadow-lg shadow-emerald/20 hover:opacity-90 transition-opacity"
-            >
-              Get Started Free <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              href="/how-it-works"
-              className="inline-flex items-center gap-2 text-sm font-semibold glass-card glass-card-hover text-(--foreground) px-6 py-3 rounded-xl"
-            >
-              See How It Works
-            </Link>
+      {/* ── Hero ─────────────────────────────────────────────── */}
+      <section className="hero wrap">
+        <p className="eyebrow">Powered by Gemini AI · 100% Free</p>
+
+        <h1 style={{ marginTop: 'var(--s4)' }}>
+          Analyze any Indian stock<br />
+          with <em>AI clarity</em>
+        </h1>
+
+        <p className="lede" style={{ maxWidth: '52ch', marginTop: 'var(--s5)' }}>
+          Instant AI-powered buy/sell recommendations, technical analysis, F&amp;O strategies, and
+          news — for any NSE/BSE stock, explained in plain English.
+        </p>
+
+        <div className="hero-search" style={{ marginTop: 'var(--s6)' }}>
+          <StockSearch />
+        </div>
+
+        <div className="hero-try" style={{ marginTop: 'var(--s7)' }}>
+          <p className="label">Try a popular stock</p>
+          <div className="chips">
+            {POPULAR_STOCKS.map(s => (
+              <Link key={s} href={`/analysis/${s}`} className="chip">{s}</Link>
+            ))}
           </div>
         </div>
-      </section>
 
-      {/* Stats bar */}
-      <section className="max-w-5xl mx-auto px-4 pb-14">
-        <div className="glass-card rounded-2xl grid grid-cols-2 md:grid-cols-4 divide-y sm:divide-y-0 divide-x-0 md:divide-x divide-(--surface-border)">
-          {STATS.map(stat => (
-            <div key={stat.label} className="px-4 py-6 text-center">
-              <p className="font-display text-2xl md:text-3xl font-bold brand-gradient-text mb-1">{stat.value}</p>
-              <p className="text-xs sm:text-sm text-(--muted)">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Popular stocks */}
-      <section className="max-w-5xl mx-auto px-4 pb-14">
-        <p className="text-sm font-medium text-(--muted) mb-3">Try it on a popular stock</p>
-        <div className="flex flex-wrap gap-2">
-          {POPULAR_STOCKS.map(s => (
-            <Link
-              key={s}
-              href={`/analysis/${s}`}
-              className="px-4 py-2 glass-card glass-card-hover rounded-lg text-sm font-medium text-(--foreground) hover:text-emerald transition-colors"
-            >
-              {s}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="max-w-5xl mx-auto px-4 py-14">
-        <div className="text-center mb-10">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-(--foreground) mb-2">How It Works</h2>
-          <p className="text-(--muted)">From a stock name to a clear recommendation in under 15 seconds.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { icon: Search, title: '1. Search', desc: 'Type any NSE/BSE stock name or symbol' },
-            { icon: Brain, title: '2. AI Analyzes', desc: 'Gemini AI fetches live data, news, and computes technicals' },
-            { icon: LineChart, title: '3. Get Insights', desc: 'See a buy/sell recommendation with target and stop loss' },
-          ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="glass-card glass-card-hover rounded-2xl p-6 text-center">
-              <div className="w-12 h-12 bg-emerald-light/15 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Icon className="w-6 h-6 text-emerald" />
-              </div>
-              <h3 className="font-display font-semibold text-(--foreground) mb-1">{title}</h3>
-              <p className="text-sm text-(--muted)">{desc}</p>
-            </div>
-          ))}
-        </div>
-        <div className="text-center mt-8">
-          <Link href="/how-it-works" className="inline-flex items-center gap-1 text-sm font-semibold text-emerald hover:text-emerald-light transition-colors">
-            Learn more about how StockSense AI works <ArrowRight className="w-3.5 h-3.5" />
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 'var(--s7)' }}>
+          <Link href="/signup" className="btn btn-primary">
+            Get Started Free <span className="arrow"><ArrowRight width={16} height={16} /></span>
+          </Link>
+          <Link href="/how-it-works" className="btn btn-ghost">
+            How It Works
           </Link>
         </div>
       </section>
 
-      {/* Feature highlights */}
-      <section className="max-w-5xl mx-auto px-4 py-14">
-        <div className="text-center mb-10">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-(--foreground) mb-2">Built for Indian retail investors</h2>
-          <p className="text-(--muted)">Everything you need to make sense of the market — in one place.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {FEATURE_HIGHLIGHTS.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="glass-card glass-card-hover rounded-2xl p-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald to-emerald-light rounded-lg flex items-center justify-center mb-4">
-                <Icon className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-display font-semibold text-(--foreground) mb-1">{title}</h3>
-              <p className="text-sm text-(--muted)">{desc}</p>
+      {/* ── Stats strip ─────────────────────────────────────── */}
+      <Reveal as="section" className="section wrap" delay={0.05}>
+        <div className="stats">
+          {STATS.map(s => (
+            <div key={s.label} className="stat">
+              <p className="statnum">{s.value}</p>
+              <p className="statlab">{s.label}</p>
             </div>
           ))}
         </div>
-        <div className="text-center">
-          <Link href="/features" className="inline-flex items-center gap-1 text-sm font-semibold text-emerald hover:text-emerald-light transition-colors">
-            Explore all features <ArrowRight className="w-3.5 h-3.5" />
+      </Reveal>
+
+      {/* ── How It Works ────────────────────────────────────── */}
+      <Reveal as="section" className="section wrap" delay={0.05}>
+        <div className="section-head">
+          <p className="eyebrow">The process</p>
+          <h2 className="section-title">How It Works</h2>
+          <p className="section-sub">From a stock name to a clear recommendation in under 15 seconds.</p>
+        </div>
+        <div className="flow">
+          {HOW_STEPS.map((step, i) => (
+            <div key={step.n} className="flow-item">
+              <span className="flow-num">{step.n}</span>
+              <div className="flow-body">
+                <h3 className="flow-title">{step.title}</h3>
+                <p className="flow-desc">{step.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 'var(--s6)' }}>
+          <Link href="/how-it-works" className="btn btn-ghost">
+            Full breakdown <span className="arrow"><ArrowRight width={16} height={16} /></span>
           </Link>
         </div>
-      </section>
+      </Reveal>
 
-      {/* Platform tools */}
-      <section className="max-w-5xl mx-auto px-4 py-14">
-        <div className="text-center mb-10">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-(--foreground) mb-2">A full toolkit, not just analysis</h2>
-          <p className="text-(--muted)">Track, plan, and practice — all in the same place as your AI insights.</p>
+      {/* ── Core Features ───────────────────────────────────── */}
+      <Reveal as="section" className="section wrap" delay={0.05}>
+        <div className="section-head">
+          <p className="eyebrow">What you get</p>
+          <h2 className="section-title">Built for Indian retail investors</h2>
+          <p className="section-sub">Everything you need to make sense of the market — in one place.</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {PLATFORM_TOOLS.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="glass-card glass-card-hover rounded-2xl p-5 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-lg bg-emerald-light/15 flex items-center justify-center flex-shrink-0">
-                <Icon className="w-5 h-5 text-emerald" />
-              </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--s4)', marginTop: 'var(--s6)' }}>
+          {FEATURES.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="panel panel-hover" style={{ padding: 'var(--s6)' }}>
+              <span className="glyph" style={{ marginBottom: 'var(--s4)', display: 'inline-grid' }}>
+                <Icon width={22} height={22} />
+              </span>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em' }}>{title}</h3>
+              <p style={{ marginTop: 'var(--s2)', color: 'var(--ink-soft)', fontSize: 15, lineHeight: 1.6 }}>{desc}</p>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 'var(--s6)' }}>
+          <Link href="/features" className="btn btn-ghost">
+            All features <span className="arrow"><ArrowRight width={16} height={16} /></span>
+          </Link>
+        </div>
+      </Reveal>
+
+      {/* ── Platform tools ──────────────────────────────────── */}
+      <Reveal as="section" className="section wrap" delay={0.05}>
+        <div className="section-head">
+          <p className="eyebrow">The platform</p>
+          <h2 className="section-title">A full toolkit, not just analysis</h2>
+          <p className="section-sub">Track, plan, and practice — all in the same place as your AI insights.</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--s4)', marginTop: 'var(--s6)' }}>
+          {TOOLS.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="panel panel-hover" style={{ padding: 'var(--s5)', display: 'flex', gap: 'var(--s4)', alignItems: 'flex-start' }}>
+              <span className="glyph" style={{ flexShrink: 0 }}>
+                <Icon width={20} height={20} />
+              </span>
               <div>
-                <h3 className="font-display font-semibold text-(--foreground) mb-1">{title}</h3>
-                <p className="text-sm text-(--muted)">{desc}</p>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 17, letterSpacing: '-0.01em' }}>{title}</h3>
+                <p style={{ marginTop: 'var(--s2)', color: 'var(--ink-soft)', fontSize: 14, lineHeight: 1.5 }}>{desc}</p>
               </div>
             </div>
           ))}
         </div>
-      </section>
+      </Reveal>
 
-      {/* Who it's for teaser */}
-      <section className="max-w-5xl mx-auto px-4 py-14">
-        <div className="glass-card rounded-2xl p-8 md:p-12 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+      {/* ── Who it's for ────────────────────────────────────── */}
+      <Reveal as="section" className="section wrap" delay={0.05}>
+        <div className="split">
           <div>
-            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-emerald-light/15 text-xs font-medium text-emerald">
-              <Zap className="w-3.5 h-3.5" />
-              <span>For every kind of investor</span>
-            </div>
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-(--foreground) mb-3">
-              Whether you&apos;re just starting out or refining your strategy
+            <p className="eyebrow">Who it's for</p>
+            <h2 className="section-title" style={{ marginTop: 'var(--s3)' }}>
+              Whether you&apos;re just starting out or <em>refining your strategy</em>
             </h2>
-            <p className="text-(--muted) mb-6">
+            <p style={{ color: 'var(--ink-soft)', fontSize: 17, lineHeight: 1.6, marginTop: 'var(--s4)', maxWidth: '46ch' }}>
               StockSense AI explains charts and indicators in plain English for beginners, while giving
-              experienced traders fast technicals, screeners, and F&amp;O ideas to speed up research.
+              experienced traders fast technicals, screeners, and F&amp;O ideas.
             </p>
-            <Link href="/who-its-for" className="inline-flex items-center gap-1 text-sm font-semibold text-emerald hover:text-emerald-light transition-colors">
-              See who it&apos;s for <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            <div style={{ marginTop: 'var(--s6)' }}>
+              <Link href="/who-its-for" className="btn btn-ghost">
+                See who it&apos;s for <span className="arrow"><ArrowRight width={16} height={16} /></span>
+              </Link>
+            </div>
           </div>
-          <div className="space-y-3">
-            {[
-              'No jargon — every term is explained simply',
-              'Real technical indicators, not AI guesses',
-              'Practice with a paper portfolio before risking real money',
-              'Set price alerts and never miss a move',
-            ].map(item => (
-              <div key={item} className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-(--foreground)">{item}</p>
+          <div className="checklist">
+            {CHECKLIST.map(item => (
+              <div key={item} className="check">
+                <span className="tick"><Check width={15} height={15} strokeWidth={2.5} /></span>
+                <p>{item}</p>
               </div>
             ))}
           </div>
         </div>
-      </section>
+      </Reveal>
 
-      {/* Disclosure */}
-      <section className="max-w-5xl mx-auto px-4 pb-14">
-        <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-5 text-sm text-amber-700 dark:text-amber-300">
-          <p>
-            ⚠️ StockSense AI is an educational tool only — not registered with SEBI as an Investment Adviser
-            or Research Analyst. Nothing here is investment advice. See our{' '}
-            <Link href="/legal/disclaimer" className="font-semibold underline">Risk Disclosure</Link>.
-          </p>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="max-w-5xl mx-auto px-4 pb-20">
-        <div className="relative overflow-hidden glass-strong rounded-2xl px-6 py-14 md:py-16 text-center">
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background: 'radial-gradient(circle at 50% 0%, rgba(45,212,167,0.18), transparent 50%)',
-            }}
-          />
-          <div className="relative">
-            <ShieldCheck className="w-10 h-10 text-emerald mx-auto mb-4" />
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-(--foreground) mb-3">
-              Start making sense of the market today
-            </h2>
-            <p className="text-(--muted) mb-8 max-w-xl mx-auto">
-              No subscriptions, no hidden costs — sign up free and get your first AI stock analysis in seconds.
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <Link
-                href="/signup"
-                className="inline-flex items-center gap-2 text-sm font-semibold bg-gradient-to-r from-emerald to-emerald-light text-white px-6 py-3 rounded-xl shadow-lg shadow-emerald/20 hover:opacity-90 transition-opacity"
-              >
-                Get Started Free <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/get-started"
-                className="inline-flex items-center gap-2 text-sm font-semibold glass-card glass-card-hover text-(--foreground) px-6 py-3 rounded-xl"
-              >
-                Read the FAQ
-              </Link>
-            </div>
+      {/* ── CTA band ────────────────────────────────────────── */}
+      <Reveal as="section" className="section wrap" delay={0.05}>
+        <div className="cta-band">
+          <h2>Start making sense of the market today</h2>
+          <p>No subscriptions, no hidden costs — sign up free and get your first AI stock analysis in seconds.</p>
+          <div className="row">
+            <Link href="/signup" className="btn btn-primary">
+              Get Started Free <span className="arrow"><ArrowRight width={16} height={16} /></span>
+            </Link>
+            <Link href="/get-started" className="btn btn-ghost">
+              Read the FAQ
+            </Link>
           </div>
         </div>
-      </section>
+
+        <div className="disclaimer" style={{ marginTop: 'var(--s6)' }}>
+          <span>⚠️</span>
+          <p>
+            StockSense AI is an educational tool only — not registered with SEBI as an Investment Adviser
+            or Research Analyst. Nothing here is investment advice.{' '}
+            <Link href="/legal/disclaimer">See our Risk Disclosure.</Link>
+          </p>
+        </div>
+      </Reveal>
 
       <Footer />
     </div>
