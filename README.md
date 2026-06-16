@@ -169,15 +169,6 @@ Open [http://localhost:3000](http://localhost:3000).
 | Free account | 10 lifetime analyses | Server-side count check before each Gemini call |
 | Unlimited (admin-granted) | Unlimited | `user_metadata.unlimited = true` in Supabase |
 
-To grant a user unlimited access:
-
-```sql
--- Via Supabase SQL Editor
-UPDATE auth.users
-SET raw_user_meta_data = raw_user_meta_data || '{"unlimited": true}'::jsonb
-WHERE email = 'user@example.com';
-```
-
 ---
 
 ## Data Sources
