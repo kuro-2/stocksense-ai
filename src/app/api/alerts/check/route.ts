@@ -10,11 +10,8 @@ export const maxDuration = 60;
 // Intended to be called by a scheduled cron job (e.g. every 15 minutes).
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const header = req.headers.get('x-cron-secret');
-    if (header !== cronSecret) {
-      return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
-    }
+  if (!cronSecret || req.headers.get('x-cron-secret') !== cronSecret) {
+    return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   }
 
   try {

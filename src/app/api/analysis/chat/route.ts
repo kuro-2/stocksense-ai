@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { chatFollowUp } from '@/lib/gemini';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -12,6 +13,12 @@ interface ChatMessage {
 // POST /api/analysis/chat — stateless follow-up Q&A about a stock analysis
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    const allowed = await checkRateLimit(`chat:${ip}`, 20, 60 * 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json({ answer: "You've sent a lot of questions — please wait a bit before asking more." }, { status: 429 });
+    }
+
     const body = await req.json().catch(() => ({}));
     const { symbol, context, history, question } = body;
 

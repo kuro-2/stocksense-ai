@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
+import { getQuote } from '@/lib/yahoo-finance';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,12 +12,23 @@ export async function POST(req: NextRequest) {
   }
   const userId = user.id;
 
-  const { symbol, stockName, tradeType, instrumentType = 'EQUITY', quantity, price, notes } = await req.json();
-  if (!symbol || !tradeType || !quantity || !price) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  const { symbol, stockName, tradeType, instrumentType = 'EQUITY', quantity, notes } = await req.json();
+  if (!symbol || !stockName || (tradeType !== 'BUY' && tradeType !== 'SELL')) {
+    return NextResponse.json({ error: 'Missing required fields', code: 'BAD_REQUEST' }, { status: 400 });
+  }
+  if (!Number.isInteger(quantity) || quantity <= 0) {
+    return NextResponse.json({ error: 'quantity must be a positive integer', code: 'BAD_REQUEST' }, { status: 400 });
   }
 
   try {
+    // Price is always the live market price — never trust a client-supplied price,
+    // otherwise a user could fabricate gains or mint virtual cash via a fake trade.
+    const quote = await getQuote(symbol);
+    const price = quote?.regularMarketPrice;
+    if (typeof price !== 'number' || price <= 0) {
+      return NextResponse.json({ error: 'Could not fetch live price for symbol', code: 'STOCK_NOT_FOUND' }, { status: 404 });
+    }
+
     let portfolio = await prisma.portfolio.findUnique({ where: { userId } });
     if (!portfolio) {
       portfolio = await prisma.portfolio.create({ data: { userId } });
@@ -37,6 +49,15 @@ export async function POST(req: NextRequest) {
     const existingPosition = await prisma.position.findUnique({
       where: { portfolioId_symbol_instrumentType: { portfolioId: portfolio.id, symbol: symbol.toUpperCase(), instrumentType } },
     });
+
+    // No short-selling: can't sell more than you hold (or sell what you don't hold at all).
+    if (tradeType === 'SELL' && (!existingPosition || existingPosition.quantity < quantity)) {
+      return NextResponse.json({
+        error: 'Insufficient holdings to sell',
+        code: 'INSUFFICIENT_HOLDINGS',
+        held: existingPosition?.quantity ?? 0,
+      }, { status: 400 });
+    }
 
     const realizedPnLForTrade = (tradeType === 'SELL' && existingPosition)
       ? (price - existingPosition.averageCost) * quantity

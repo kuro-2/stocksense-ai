@@ -179,3 +179,13 @@ model PriceAlert {
   @@index([symbol, isActive])
   @@map("price_alerts")
 }
+
+model RateLimit {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  windowStart DateTime
+  count       Int      @default(0)
+
+  @@index([windowStart])
+  @@map("rate_limits")
+}

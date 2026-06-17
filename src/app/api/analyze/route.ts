@@ -4,6 +4,7 @@ import { calculateRSI, calculateSMA, findSupportResistance, getRSIInterpretation
 import { analyzeStock, getLiveNews, getMutualFundEstimate } from '@/lib/gemini';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { isIndexSymbol, getMarketSymbolInfo } from '@/lib/markets';
 import { getFnoMarketContext, preFilterFnoStrategy, finalizeFnoRecommendation } from '@/lib/fno';
 import type { AnalysisResult, Trend } from '@/types/stock';
@@ -24,11 +25,23 @@ export async function POST(req: NextRequest) {
 
     const isIndex = isIndexSymbol(symbol);
 
-    const [quote, history, fnoContext, user] = await Promise.all([
+    const user = await getAuthUser();
+
+    if (!user) {
+      const ip = getClientIp(req);
+      const allowed = await checkRateLimit(`analyze:${ip}`, 5, 60 * 60 * 1000);
+      if (!allowed) {
+        return NextResponse.json({
+          error: 'Too many requests. Please sign in for continued access, or try again later.',
+          code: 'RATE_LIMITED',
+        }, { status: 429 });
+      }
+    }
+
+    const [quote, history, fnoContext] = await Promise.all([
       getQuote(symbol),
       getHistory(symbol, '3mo'),
       getFnoMarketContext(symbol, isIndex),
-      getAuthUser(),
     ]);
 
     if (!quote || !quote.regularMarketPrice) {
