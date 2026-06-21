@@ -29,7 +29,7 @@ export function StockSearch() {
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => search(query), 300);
+    debounceRef.current = setTimeout(() => search(query), 120);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query, search]);
 
