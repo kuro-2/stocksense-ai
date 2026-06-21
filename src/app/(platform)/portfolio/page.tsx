@@ -69,22 +69,27 @@ export default function PortfolioPage() {
     setSubmitting(true);
     setTradeError(null);
     setTradeSuccess(null);
-    const res = await fetch('/api/portfolio/trade', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setTradeError(data.error ?? 'Trade failed');
-    } else {
-      setTradeSuccess(`${form.tradeType} order executed! Cash remaining: ${formatINR(data.cashRemaining)}`);
-      setShowTradeForm(false);
-      setSelectedStock(null);
-      setForm({ symbol: '', stockName: '', tradeType: 'BUY', instrumentType: 'EQUITY', quantity: 1, price: 0 });
-      fetchSummary();
+    try {
+      const res = await fetch('/api/portfolio/trade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setTradeError(data.error ?? 'Trade failed');
+      } else {
+        setTradeSuccess(`${form.tradeType} order executed! Cash remaining: ${formatINR(data.cashRemaining)}`);
+        setShowTradeForm(false);
+        setSelectedStock(null);
+        setForm({ symbol: '', stockName: '', tradeType: 'BUY', instrumentType: 'EQUITY', quantity: 1, price: 0 });
+        fetchSummary();
+      }
+    } catch {
+      setTradeError('Could not reach the server. Check your connection and try again.');
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   const pnlColor = (v: number) => v >= 0 ? 'text-green-600' : 'text-red-600';
@@ -143,8 +148,8 @@ export default function PortfolioPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Quantity</label>
-                <input type="number" min={1} required value={form.quantity}
-                  onChange={e => setForm(f => ({ ...f, quantity: parseInt(e.target.value) }))}
+                <input type="number" min={1} required value={form.quantity || ''}
+                  onChange={e => setForm(f => ({ ...f, quantity: e.target.value === '' ? 0 : parseInt(e.target.value) }))}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
                 />
               </div>
