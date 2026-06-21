@@ -31,11 +31,23 @@ const MARKET_CAP_LABELS: Record<typeof MARKET_CAP_OPTIONS[number], string> = {
   SMALL_CAP: 'Small Cap',
 };
 
+type PresetId = 'OVERSOLD' | 'TRENDING_UP' | 'SAFE_LARGE_CAP' | 'NEAR_52W_LOW';
+
+const PRESETS: { id: PresetId; label: string; body: Record<string, unknown> }[] = [
+  { id: 'OVERSOLD', label: 'Stocks that are oversold (good deals)', body: { rsiMax: 30 } },
+  { id: 'TRENDING_UP', label: 'Stocks that are trending up strongly', body: { trend: 'BULLISH', aboveSma200: true } },
+  { id: 'SAFE_LARGE_CAP', label: 'Safe large-cap stocks', body: { marketCap: 'LARGE_CAP' } },
+  { id: 'NEAR_52W_LOW', label: 'Stocks near their 52-week low', body: { near52WeekLow: true } },
+];
+
 export default function ScreenerPage() {
   const [results, setResults] = useState<ScreenerResult[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [mode, setMode] = useState<'SIMPLE' | 'ADVANCED'>('SIMPLE');
+  const [preset, setPreset] = useState<PresetId>('OVERSOLD');
 
   const [rsiMin, setRsiMin] = useState('');
   const [rsiMax, setRsiMax] = useState('');
@@ -43,16 +55,20 @@ export default function ScreenerPage() {
   const [aboveSma200, setAboveSma200] = useState(false);
   const [marketCap, setMarketCap] = useState<typeof MARKET_CAP_OPTIONS[number]>('ANY');
 
-  async function runScreener() {
+  async function runScreener(overrideBody?: Record<string, unknown>) {
     setLoading(true);
     setError(null);
     try {
-      const body: Record<string, unknown> = {};
-      if (rsiMin !== '') body.rsiMin = Number(rsiMin);
-      if (rsiMax !== '') body.rsiMax = Number(rsiMax);
-      if (trend !== 'ANY') body.trend = trend;
-      if (aboveSma200) body.aboveSma200 = true;
-      if (marketCap !== 'ANY') body.marketCap = marketCap;
+      let body: Record<string, unknown> = {};
+      if (overrideBody) {
+        body = overrideBody;
+      } else {
+        if (rsiMin !== '') body.rsiMin = Number(rsiMin);
+        if (rsiMax !== '') body.rsiMax = Number(rsiMax);
+        if (trend !== 'ANY') body.trend = trend;
+        if (aboveSma200) body.aboveSma200 = true;
+        if (marketCap !== 'ANY') body.marketCap = marketCap;
+      }
 
       const res = await fetch('/api/screener', {
         method: 'POST',
@@ -70,6 +86,11 @@ export default function ScreenerPage() {
     }
   }
 
+  function runPreset() {
+    const found = PRESETS.find(p => p.id === preset);
+    runScreener(found?.body ?? {});
+  }
+
   useEffect(() => { runScreener(); }, []);
 
   return (
@@ -78,57 +99,96 @@ export default function ScreenerPage() {
           <Filter className="w-6 h-6 text-emerald" />
           <h1 className="font-display text-2xl font-bold text-(--foreground)">Stock Screener</h1>
         </div>
-        <p className="text-sm text-(--muted) mb-6">
+        <p className="text-sm text-(--muted) mb-4">
           Filter the Nifty 50 universe by technical indicators (RSI, trend, SMA position).
         </p>
 
-        <form
-          onSubmit={e => { e.preventDefault(); runScreener(); }}
-          className="glass-card rounded-xl p-4 mb-6 flex flex-wrap items-end gap-4"
-        >
-          <div>
-            <label className="block text-xs font-medium text-(--muted) mb-1">RSI Min</label>
-            <input
-              type="number" min={0} max={100} value={rsiMin} onChange={e => setRsiMin(e.target.value)}
-              placeholder="0" className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm w-24 bg-transparent focus:outline-none focus:border-emerald"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-(--muted) mb-1">RSI Max</label>
-            <input
-              type="number" min={0} max={100} value={rsiMax} onChange={e => setRsiMax(e.target.value)}
-              placeholder="100" className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm w-24 bg-transparent focus:outline-none focus:border-emerald"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-(--muted) mb-1">Trend</label>
-            <select
-              value={trend} onChange={e => setTrend(e.target.value as typeof TREND_OPTIONS[number])}
-              className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm bg-transparent focus:outline-none focus:border-emerald"
+        <div className="inline-flex glass-card rounded-lg p-1 mb-4">
+          {(['SIMPLE', 'ADVANCED'] as const).map(m => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${mode === m ? 'bg-emerald text-white' : 'text-(--muted) hover:text-(--foreground)'}`}
             >
-              {TREND_OPTIONS.map(t => <option key={t} value={t}>{t === 'ANY' ? 'Any' : t}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-(--muted) mb-1">Market Cap</label>
-            <select
-              value={marketCap} onChange={e => setMarketCap(e.target.value as typeof MARKET_CAP_OPTIONS[number])}
-              className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm bg-transparent focus:outline-none focus:border-emerald"
-            >
-              {MARKET_CAP_OPTIONS.map(c => <option key={c} value={c}>{MARKET_CAP_LABELS[c]}</option>)}
-            </select>
-          </div>
-          <label className="flex items-center gap-2 text-sm text-(--muted) pb-2">
-            <input type="checkbox" checked={aboveSma200} onChange={e => setAboveSma200(e.target.checked)} className="rounded" />
-            Above 200-day SMA
-          </label>
-          <button
-            type="submit" disabled={loading}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
+              {m === 'SIMPLE' ? 'Simple' : 'Advanced'}
+            </button>
+          ))}
+        </div>
+
+        {mode === 'SIMPLE' ? (
+          <form
+            onSubmit={e => { e.preventDefault(); runPreset(); }}
+            className="glass-card rounded-xl p-4 mb-6"
           >
-            {loading && <Loader2 className="w-3 h-3 animate-spin" />} Run Screener
-          </button>
-        </form>
+            <p className="text-sm font-medium text-(--foreground) mb-3">I&apos;m looking for:</p>
+            <div className="flex flex-col gap-2 mb-4">
+              {PRESETS.map(p => (
+                <label key={p.id} className="flex items-center gap-2 text-sm text-(--foreground) cursor-pointer">
+                  <input
+                    type="radio" name="preset" checked={preset === p.id}
+                    onChange={() => setPreset(p.id)}
+                  />
+                  {p.label}
+                </label>
+              ))}
+            </div>
+            <button
+              type="submit" disabled={loading}
+              className="flex items-center gap-2 bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
+            >
+              {loading && <Loader2 className="w-3 h-3 animate-spin" />} Find Stocks
+            </button>
+          </form>
+        ) : (
+          <form
+            onSubmit={e => { e.preventDefault(); runScreener(); }}
+            className="glass-card rounded-xl p-4 mb-6 flex flex-wrap items-end gap-4"
+          >
+            <div>
+              <label className="block text-xs font-medium text-(--muted) mb-1">RSI Min</label>
+              <input
+                type="number" min={0} max={100} value={rsiMin} onChange={e => setRsiMin(e.target.value)}
+                placeholder="0" className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm w-24 bg-transparent focus:outline-none focus:border-emerald"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-(--muted) mb-1">RSI Max</label>
+              <input
+                type="number" min={0} max={100} value={rsiMax} onChange={e => setRsiMax(e.target.value)}
+                placeholder="100" className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm w-24 bg-transparent focus:outline-none focus:border-emerald"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-(--muted) mb-1">Trend</label>
+              <select
+                value={trend} onChange={e => setTrend(e.target.value as typeof TREND_OPTIONS[number])}
+                className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm bg-transparent focus:outline-none focus:border-emerald"
+              >
+                {TREND_OPTIONS.map(t => <option key={t} value={t}>{t === 'ANY' ? 'Any' : t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-(--muted) mb-1">Market Cap</label>
+              <select
+                value={marketCap} onChange={e => setMarketCap(e.target.value as typeof MARKET_CAP_OPTIONS[number])}
+                className="border border-(--surface-border) rounded-lg px-3 py-2 text-sm bg-transparent focus:outline-none focus:border-emerald"
+              >
+                {MARKET_CAP_OPTIONS.map(c => <option key={c} value={c}>{MARKET_CAP_LABELS[c]}</option>)}
+              </select>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-(--muted) pb-2">
+              <input type="checkbox" checked={aboveSma200} onChange={e => setAboveSma200(e.target.checked)} className="rounded" />
+              Above 200-day SMA
+            </label>
+            <button
+              type="submit" disabled={loading}
+              className="flex items-center gap-2 bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
+            >
+              {loading && <Loader2 className="w-3 h-3 animate-spin" />} Run Screener
+            </button>
+          </form>
+        )}
 
         {error && <div className="text-center py-12 text-red-600">{error}</div>}
 

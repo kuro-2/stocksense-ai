@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Plus, Trash2, TrendingUp, Loader2 } from 'lucide-react';
 import { formatINR, formatPercent } from '@/lib/utils';
+import { StockAutocompleteInput } from '@/components/stock/StockAutocompleteInput';
+import type { SearchResult } from '@/types/stock';
 
 interface WatchlistItem {
   id: string;
@@ -19,8 +21,7 @@ export default function WatchlistPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unauthorized, setUnauthorized] = useState(false);
-  const [addSymbol, setAddSymbol] = useState('');
-  const [addName, setAddName] = useState('');
+  const [selectedStock, setSelectedStock] = useState<SearchResult | null>(null);
   const [adding, setAdding] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
 
@@ -42,14 +43,14 @@ export default function WatchlistPage() {
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    if (!addSymbol || !addName) return;
+    if (!selectedStock?.symbol) return;
     setAdding(true);
     await fetch('/api/watchlist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ symbol: addSymbol.toUpperCase(), stockName: addName }),
+      body: JSON.stringify({ symbol: selectedStock.symbol, stockName: selectedStock.name }),
     });
-    setAddSymbol(''); setAddName(''); setShowAdd(false); setAdding(false);
+    setSelectedStock(null); setShowAdd(false); setAdding(false);
     fetchWatchlist();
   }
 
@@ -82,19 +83,17 @@ export default function WatchlistPage() {
         </div>
 
         {showAdd && (
-          <form onSubmit={handleAdd} className="glass-card rounded-xl p-4 mb-4 flex gap-3 flex-wrap">
-            <input
-              type="text" value={addSymbol} onChange={e => setAddSymbol(e.target.value)}
-              placeholder="Symbol (e.g. RELIANCE)" required
-              className="border border-slate-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-[140px] focus:outline-none focus:border-blue-400"
-            />
-            <input
-              type="text" value={addName} onChange={e => setAddName(e.target.value)}
-              placeholder="Company name" required
-              className="border border-slate-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-[180px] focus:outline-none focus:border-blue-400"
-            />
+          <form onSubmit={handleAdd} className="glass-card rounded-xl p-4 mb-4 flex gap-3 flex-wrap items-start">
+            <div className="flex-1 min-w-[220px]">
+              <StockAutocompleteInput
+                selected={selectedStock}
+                onSelect={setSelectedStock}
+                placeholder="Search stock (e.g. RELIANCE)"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+              />
+            </div>
             <button
-              type="submit" disabled={adding}
+              type="submit" disabled={adding || !selectedStock?.symbol}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
             >
               {adding && <Loader2 className="w-3 h-3 animate-spin" />} Add

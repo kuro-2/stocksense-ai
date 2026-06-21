@@ -1,9 +1,17 @@
 'use client';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Badge } from '@/components/ui/Badge';
 import { Loader2, GitCompare, Plus, X } from 'lucide-react';
 import { formatINR, formatPercent, RECO_CONFIG } from '@/lib/utils';
+
+function getInitialSymbols(raw: string | null): string[] {
+  if (!raw) return ['RELIANCE', 'TCS'];
+  const parsed = raw.split(',').map(s => s.trim().toUpperCase());
+  while (parsed.length < 2) parsed.push('');
+  return parsed.slice(0, 4);
+}
 
 interface CompareResult {
   symbol: string;
@@ -24,7 +32,16 @@ interface CompareResult {
 }
 
 export default function ComparePage() {
-  const [symbols, setSymbols] = useState<string[]>(['RELIANCE', 'TCS']);
+  return (
+    <Suspense fallback={null}>
+      <ComparePageContent />
+    </Suspense>
+  );
+}
+
+function ComparePageContent() {
+  const searchParams = useSearchParams();
+  const [symbols, setSymbols] = useState<string[]>(() => getInitialSymbols(searchParams.get('symbols')));
   const [results, setResults] = useState<CompareResult[]>([]);
   const [errors, setErrors] = useState<{ symbol: string; error: string }[]>([]);
   const [loading, setLoading] = useState(false);

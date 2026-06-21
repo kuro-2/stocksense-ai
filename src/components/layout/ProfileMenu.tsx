@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, LogOut, LogIn, UserPlus, ChevronDown } from 'lucide-react';
+import { User, LogOut, LogIn, UserPlus, ChevronDown, Clock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -70,6 +70,13 @@ export function ProfileMenu() {
                 <p className="text-xs text-(--muted)">Signed in as</p>
                 <p className="text-sm font-medium text-(--foreground) truncate">{user.email}</p>
               </div>
+              <Link
+                href="/history"
+                onClick={() => setOpen(false)}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-(--surface-hover) hover:text-emerald transition-colors"
+              >
+                <Clock className="w-4 h-4" /> Analysis History
+              </Link>
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-(--surface-hover) hover:text-red-500 transition-colors text-left"
