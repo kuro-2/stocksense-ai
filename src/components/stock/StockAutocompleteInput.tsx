@@ -23,7 +23,7 @@ export function StockAutocompleteInput({ selected, onSelect, placeholder = 'Sear
       const res = await fetch(`/api/stock/search?q=${encodeURIComponent(query)}`);
       const data = await res.json();
       setResults(data.results ?? []);
-    }, 300);
+    }, 120);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query]);
 
