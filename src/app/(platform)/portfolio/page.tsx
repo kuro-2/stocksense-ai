@@ -1,10 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Loader2, TrendingUp, PieChart } from 'lucide-react';
+import { Plus, Loader2, TrendingUp, PieChart, RefreshCw } from 'lucide-react';
 import { formatINR, formatPercent } from '@/lib/utils';
 import { SectorAllocationChart } from '@/components/portfolio/SectorAllocationChart';
+import { StockAutocompleteInput } from '@/components/stock/StockAutocompleteInput';
 import type { PortfolioSummary, TradeInput } from '@/types/portfolio';
+import type { SearchResult } from '@/types/stock';
 
 export default function PortfolioPage() {
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
@@ -14,9 +16,36 @@ export default function PortfolioPage() {
   const [tradeError, setTradeError] = useState<string | null>(null);
   const [tradeSuccess, setTradeSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedStock, setSelectedStock] = useState<SearchResult | null>(null);
+  const [priceLoading, setPriceLoading] = useState(false);
   const [form, setForm] = useState<TradeInput>({
     symbol: '', stockName: '', tradeType: 'BUY', instrumentType: 'EQUITY', quantity: 1, price: 0,
   });
+
+  async function handleSelectStock(result: SearchResult) {
+    setSelectedStock(result.symbol ? result : null);
+    if (!result.symbol) {
+      setForm(f => ({ ...f, symbol: '', stockName: '', price: 0 }));
+      return;
+    }
+    setForm(f => ({ ...f, symbol: result.symbol, stockName: result.name }));
+    await refreshPrice(result.symbol);
+  }
+
+  async function refreshPrice(symbol: string) {
+    setPriceLoading(true);
+    try {
+      const res = await fetch(`/api/stock/${symbol}/quote`);
+      if (res.ok) {
+        const data = await res.json();
+        setForm(f => ({ ...f, price: data.currentPrice ?? 0 }));
+      }
+    } catch {
+      // keep existing price on failure
+    } finally {
+      setPriceLoading(false);
+    }
+  }
 
   async function fetchSummary() {
     setLoading(true);
@@ -51,6 +80,8 @@ export default function PortfolioPage() {
     } else {
       setTradeSuccess(`${form.tradeType} order executed! Cash remaining: ${formatINR(data.cashRemaining)}`);
       setShowTradeForm(false);
+      setSelectedStock(null);
+      setForm({ symbol: '', stockName: '', tradeType: 'BUY', instrumentType: 'EQUITY', quantity: 1, price: 0 });
       fetchSummary();
     }
     setSubmitting(false);
@@ -91,20 +122,13 @@ export default function PortfolioPage() {
               <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{tradeError}</div>
             )}
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Symbol</label>
-                <input type="text" required value={form.symbol}
-                  onChange={e => setForm(f => ({ ...f, symbol: e.target.value.toUpperCase() }))}
+              <div className="col-span-2">
+                <label className="block text-xs font-medium text-slate-600 mb-1">Stock</label>
+                <StockAutocompleteInput
+                  selected={selectedStock}
+                  onSelect={handleSelectStock}
+                  placeholder="Search stock (e.g. RELIANCE)"
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-                  placeholder="RELIANCE"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Company Name</label>
-                <input type="text" required value={form.stockName}
-                  onChange={e => setForm(f => ({ ...f, stockName: e.target.value }))}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-                  placeholder="Reliance Industries"
                 />
               </div>
               <div>
@@ -126,11 +150,22 @@ export default function PortfolioPage() {
               </div>
               <div className="col-span-2">
                 <label className="block text-xs font-medium text-slate-600 mb-1">Price (₹)</label>
-                <input type="number" min={0.01} step={0.01} required value={form.price || ''}
-                  onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) }))}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-                  placeholder="Enter price per share"
-                />
+                <div className="flex items-center gap-2">
+                  <input type="number" min={0.01} step={0.01} required value={form.price || ''}
+                    onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+                    placeholder="Select a stock to auto-fill"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => form.symbol && refreshPrice(form.symbol)}
+                    disabled={!form.symbol || priceLoading}
+                    title="Refresh live price"
+                    className="p-2 rounded-lg glass-card glass-card-hover disabled:opacity-40 transition-opacity"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${priceLoading ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
               </div>
             </div>
             {form.quantity > 0 && form.price > 0 && (

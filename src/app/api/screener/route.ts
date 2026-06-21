@@ -13,6 +13,7 @@ interface ScreenerFilters {
   aboveSma200?: boolean;
   sector?: string;
   marketCap?: MarketCap;
+  near52WeekLow?: boolean;
 }
 
 async function runScreener(filters: ScreenerFilters) {
@@ -25,6 +26,7 @@ async function runScreener(filters: ScreenerFilters) {
   if (filters.aboveSma200) filtered = filtered.filter(s => s.price > s.sma200);
   if (filters.sector) filtered = filtered.filter(s => s.sector === filters.sector);
   if (filters.marketCap) filtered = filtered.filter(s => s.marketCap === filters.marketCap);
+  if (filters.near52WeekLow) filtered = filtered.filter(s => s.week52Low > 0 && s.price <= s.week52Low * 1.1);
 
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const enriched = await Promise.all(

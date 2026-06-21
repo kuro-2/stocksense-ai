@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Loader2, BarChart3 } from 'lucide-react';
 import { formatPercent } from '@/lib/utils';
 import { INDICES, SECTOR_INDICES, type MarketSymbol } from '@/lib/markets';
-import { MarketsTabs } from '@/components/markets/MarketsTabs';
+import { Tabs } from '@/components/ui/Tabs';
 import { AdvanceDeclineWidget } from '@/components/markets/AdvanceDeclineWidget';
 import { SectorHeatmap } from '@/components/markets/SectorHeatmap';
 import { MoversTab } from '@/components/markets/MoversTab';
@@ -93,6 +93,29 @@ function OverviewTab({ quotes, loading }: { quotes: Record<string, QuoteData>; l
       <MarketGrid title="Major Indices" items={INDICES} quotes={quotes} loading={loading} />
       <MarketGrid title="Sector Indices" items={SECTOR_INDICES} quotes={quotes} loading={loading} />
       <AdvanceDeclineWidget />
+      <div className="mb-8">
+        <h2 className="font-display text-lg font-semibold text-(--foreground) mb-3">Sector Heatmap</h2>
+        <SectorHeatmap />
+      </div>
+    </div>
+  );
+}
+
+function MoversDealsTab() {
+  return (
+    <div className="space-y-4">
+      <MoversTab />
+      <FiiDiiCard />
+      <EarningsCalendarCard />
+      <BulkBlockDealsCard />
+    </div>
+  );
+}
+
+function PcrSentimentTab() {
+  return (
+    <div className="space-y-4">
+      <MarketWidePcrCard />
     </div>
   );
 }
@@ -138,31 +161,11 @@ export default function MarketsPage() {
           Live indices and sector performance. Click any card for a full AI analysis &amp; F&amp;O outlook.
         </p>
 
-        <MarketsTabs
+        <Tabs
           tabs={[
             { id: 'overview', label: 'Overview', content: <OverviewTab quotes={quotes} loading={loading} /> },
-            { id: 'heatmap', label: 'Heatmap', content: <SectorHeatmap /> },
-            { id: 'movers', label: 'Movers', content: <MoversTab /> },
-            {
-              id: 'fii-dii-pcr',
-              label: 'FII/DII & PCR',
-              content: (
-                <div className="space-y-4">
-                  <MarketWidePcrCard />
-                  <FiiDiiCard />
-                </div>
-              ),
-            },
-            {
-              id: 'earnings-deals',
-              label: 'Earnings & Deals',
-              content: (
-                <div className="space-y-4">
-                  <EarningsCalendarCard />
-                  <BulkBlockDealsCard />
-                </div>
-              ),
-            },
+            { id: 'movers-deals', label: 'Movers & Deals', content: <MoversDealsTab /> },
+            { id: 'pcr-sentiment', label: 'PCR & Sentiment', content: <PcrSentimentTab /> },
           ]}
         />
     </div>

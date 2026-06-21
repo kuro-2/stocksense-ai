@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, RefreshCw, Loader2, Lock, Sparkles } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Loader2, Lock, Sparkles, Star, GitCompare, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { RecommendationCard } from '@/components/stock/RecommendationCard';
 import { TechnicalPanel } from '@/components/stock/TechnicalPanel';
@@ -17,6 +17,7 @@ import { Disclaimer } from '@/components/layout/Disclaimer';
 import { AnalysisSkeleton } from '@/components/ui/Skeleton';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { Tabs } from '@/components/ui/Tabs';
 import { OptionChainTable } from '@/components/stock/OptionChainTable';
 import { formatINR, formatPercent } from '@/lib/utils';
 import type { AnalysisResult, OHLCVPoint } from '@/types/stock';
@@ -44,6 +45,24 @@ export default function AnalysisPage() {
   const [optionChainLoading, setOptionChainLoading] = useState(false);
   const [optionChainError, setOptionChainError] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState<{ source: 'anon' | 'user'; message: string } | null>(null);
+  const [watchlistState, setWatchlistState] = useState<'idle' | 'saving' | 'saved' | 'error' | 'unauthorized'>('idle');
+
+  const addToWatchlist = useCallback(async () => {
+    if (!analysis || watchlistState === 'saving' || watchlistState === 'saved') return;
+    setWatchlistState('saving');
+    try {
+      const res = await fetch('/api/watchlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol: analysis.symbol, stockName: analysis.stockName }),
+      });
+      if (res.status === 401) { setWatchlistState('unauthorized'); return; }
+      if (!res.ok) throw new Error('failed');
+      setWatchlistState('saved');
+    } catch {
+      setWatchlistState('error');
+    }
+  }, [analysis, watchlistState]);
 
   const loadOptionChain = useCallback(async () => {
     setOptionChainLoading(true);
@@ -168,14 +187,35 @@ export default function AnalysisPage() {
               </div>
             )}
           </div>
-          <button
-            onClick={runAnalysis}
-            disabled={loading || !!limitReached}
-            className="flex items-center gap-2 text-sm bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Re-analyze
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {analysis && (
+              <button
+                onClick={addToWatchlist}
+                disabled={watchlistState === 'saving' || watchlistState === 'saved'}
+                className="flex items-center gap-2 text-sm glass-card glass-card-hover px-4 py-2 rounded-lg disabled:opacity-70 transition-opacity"
+              >
+                {watchlistState === 'saved' ? <Check className="w-4 h-4 text-emerald" /> : <Star className="w-4 h-4" />}
+                {watchlistState === 'saved' ? 'Saved' : watchlistState === 'unauthorized' ? 'Log in to save' : 'Add to Watchlist'}
+              </button>
+            )}
+            {analysis && (
+              <Link
+                href={`/compare?symbols=${analysis.symbol}%2C`}
+                className="flex items-center gap-2 text-sm glass-card glass-card-hover px-4 py-2 rounded-lg transition-opacity"
+              >
+                <GitCompare className="w-4 h-4" />
+                Compare
+              </Link>
+            )}
+            <button
+              onClick={runAnalysis}
+              disabled={loading || !!limitReached}
+              className="flex items-center gap-2 text-sm bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Re-analyze
+            </button>
+          </div>
         </div>
 
         {/* Loading state */}
@@ -254,58 +294,93 @@ export default function AnalysisPage() {
           <div className="space-y-4">
             <RecommendationCard analysis={analysis} />
 
-            {/* Summary & reasoning */}
-            <Card>
-              <h3 className="font-semibold text-(--foreground) mb-2">AI Analysis</h3>
-              <p className="text-(--foreground) text-sm leading-relaxed mb-3">{analysis.summary}</p>
-              <p className="text-(--muted) text-sm leading-relaxed">{analysis.reasoning}</p>
-            </Card>
+            <Tabs
+              tabs={[
+                {
+                  id: 'overview',
+                  label: 'Overview',
+                  content: (
+                    <div className="space-y-4">
+                      <Card>
+                        <h3 className="font-semibold text-(--foreground) mb-2">AI Analysis</h3>
+                        <p className="text-(--foreground) text-sm leading-relaxed mb-3">{analysis.summary}</p>
+                        <p className="text-(--muted) text-sm leading-relaxed">{analysis.reasoning}</p>
+                      </Card>
+                      {chartData.length > 0 && (
+                        <Card className="p-3">
+                          <h3 className="font-semibold text-(--foreground) mb-3 px-1">Price Chart (3 months)</h3>
+                          <PriceChart data={chartData} support={analysis.support} resistance={analysis.resistance} />
+                          <div className="flex gap-4 mt-2 px-1 text-xs text-(--muted)">
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-green-500 inline-block rounded" /> Support ₹{analysis.support}</span>
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-red-500 inline-block rounded" /> Resistance ₹{analysis.resistance}</span>
+                          </div>
+                        </Card>
+                      )}
+                    </div>
+                  ),
+                },
+                {
+                  id: 'technicals',
+                  label: 'Technicals',
+                  content: <TechnicalPanel analysis={analysis} />,
+                },
+                {
+                  id: 'fno',
+                  label: 'F&O',
+                  content: (
+                    <div className="space-y-4">
+                      <FnOPanel analysis={analysis} />
+                      {optionChain ? (
+                        <OptionChainTable data={optionChain} />
+                      ) : (
+                        <Card>
+                          <div className="flex items-center justify-between flex-wrap gap-3">
+                            <div>
+                              <h3 className="font-semibold text-(--foreground)">Option Chain</h3>
+                              {optionChainError ? (
+                                <p className="text-sm text-red-600 mt-1">{optionChainError}</p>
+                              ) : (
+                                <p className="text-sm text-(--muted) mt-1">View live CE/PE open interest, PCR, and max pain for the nearest expiry.</p>
+                              )}
+                            </div>
+                            <button
+                              onClick={loadOptionChain}
+                              disabled={optionChainLoading}
+                              className="flex items-center gap-2 text-sm bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
+                            >
+                              {optionChainLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                              {optionChainError ? 'Retry' : 'Load Option Chain'}
+                            </button>
+                          </div>
+                        </Card>
+                      )}
+                    </div>
+                  ),
+                },
+                {
+                  id: 'news-risks',
+                  label: 'News & Risks',
+                  content: (
+                    <div className="space-y-4">
+                      <NewsPanel highlights={analysis.newsHighlights} source={analysis.newsSource} />
+                      <RiskPanel risks={analysis.risks} />
+                      <CommunitySentiment symbol={analysis.symbol} />
+                    </div>
+                  ),
+                },
+                {
+                  id: 'ask-ai',
+                  label: 'Ask AI',
+                  content: (
+                    <div className="space-y-4">
+                      <ChatPanel analysis={analysis} />
+                      <MutualFundEstimateCard analysis={analysis} />
+                    </div>
+                  ),
+                },
+              ]}
+            />
 
-            {/* Chart */}
-            {chartData.length > 0 && (
-              <Card className="p-3">
-                <h3 className="font-semibold text-(--foreground) mb-3 px-1">Price Chart (3 months)</h3>
-                <PriceChart data={chartData} support={analysis.support} resistance={analysis.resistance} />
-                <div className="flex gap-4 mt-2 px-1 text-xs text-(--muted)">
-                  <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-green-500 inline-block rounded" /> Support ₹{analysis.support}</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-red-500 inline-block rounded" /> Resistance ₹{analysis.resistance}</span>
-                </div>
-              </Card>
-            )}
-
-            <TechnicalPanel analysis={analysis} />
-            <FnOPanel analysis={analysis} />
-
-            {/* Option chain (lazy-loaded) */}
-            {optionChain ? (
-              <OptionChainTable data={optionChain} />
-            ) : (
-              <Card>
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <div>
-                    <h3 className="font-semibold text-(--foreground)">Option Chain</h3>
-                    {optionChainError ? (
-                      <p className="text-sm text-red-600 mt-1">{optionChainError}</p>
-                    ) : (
-                      <p className="text-sm text-(--muted) mt-1">View live CE/PE open interest, PCR, and max pain for the nearest expiry.</p>
-                    )}
-                  </div>
-                  <button
-                    onClick={loadOptionChain}
-                    disabled={optionChainLoading}
-                    className="flex items-center gap-2 text-sm bg-gradient-to-r from-emerald to-emerald-light text-white px-4 py-2 rounded-lg shadow-md shadow-emerald/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
-                  >
-                    {optionChainLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                    {optionChainError ? 'Retry' : 'Load Option Chain'}
-                  </button>
-                </div>
-              </Card>
-            )}
-            <NewsPanel highlights={analysis.newsHighlights} source={analysis.newsSource} />
-            <RiskPanel risks={analysis.risks} />
-            <MutualFundEstimateCard analysis={analysis} />
-            <CommunitySentiment symbol={analysis.symbol} />
-            <ChatPanel analysis={analysis} />
             <Disclaimer />
           </div>
         )}

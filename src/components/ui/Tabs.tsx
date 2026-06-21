@@ -2,14 +2,14 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-export interface MarketsTab {
+export interface Tab {
   id: string;
   label: string;
   content: React.ReactNode;
 }
 
-export function MarketsTabs({ tabs }: { tabs: MarketsTab[] }) {
-  const [active, setActive] = useState(tabs[0]?.id);
+export function Tabs({ tabs, defaultTab }: { tabs: Tab[]; defaultTab?: string }) {
+  const [active, setActive] = useState(defaultTab ?? tabs[0]?.id);
 
   return (
     <div>
