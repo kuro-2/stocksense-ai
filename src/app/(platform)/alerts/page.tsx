@@ -67,26 +67,40 @@ export default function AlertsPage() {
     e.preventDefault();
     if (!selected || !targetPrice) return;
     setAdding(true);
-    await fetch('/api/alerts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        symbol: selected.symbol,
-        stockName: selected.name,
-        condition,
-        targetPrice: Number(targetPrice),
-      }),
-    });
-    setSelected(null);
-    setQuery('');
-    setTargetPrice('');
-    setAdding(false);
-    showToast(`Alert set for ${selected.symbol}`);
-    fetchAlerts();
+    const symbolForToast = selected.symbol;
+    try {
+      const res = await fetch('/api/alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          symbol: selected.symbol,
+          stockName: selected.name,
+          condition,
+          targetPrice: Number(targetPrice),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error ?? 'Failed to create alert');
+        return;
+      }
+      setSelected(null);
+      setQuery('');
+      setTargetPrice('');
+      setSearchOpen(false);
+      showToast(`Alert set for ${symbolForToast}`);
+      fetchAlerts();
+    } finally {
+      setAdding(false);
+    }
   }
 
   async function handleRemove(id: string, symbol: string) {
-    await fetch(`/api/alerts/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/alerts/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      showToast('Failed to remove alert');
+      return;
+    }
     setItems(prev => prev.filter(i => i.id !== id));
     showToast(`Alert for ${symbol} removed`);
   }

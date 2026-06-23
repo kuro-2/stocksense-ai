@@ -41,6 +41,7 @@ export default function AnalysisPage() {
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState(LOADING_MESSAGES[0]);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [optionChain, setOptionChain] = useState<OptionChainResult | null>(null);
   const [optionChainLoading, setOptionChainLoading] = useState(false);
   const [optionChainError, setOptionChainError] = useState<string | null>(null);
@@ -97,6 +98,7 @@ export default function AnalysisPage() {
 
     setLoading(true);
     setError(null);
+    setErrorCode(null);
     setAnalysis(null);
     setLimitReached(null);
 
@@ -124,6 +126,7 @@ export default function AnalysisPage() {
             setLimitReached({ source: 'user', message: data.error });
             return;
           }
+          setErrorCode(data.code ?? null);
           throw new Error(data.error ?? 'Analysis failed');
         }
         setAnalysis(data);
@@ -188,19 +191,27 @@ export default function AnalysisPage() {
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {analysis && (
+            {analysis && watchlistState === 'unauthorized' ? (
+              <Link
+                href="/login"
+                className="flex items-center gap-2 text-sm glass-card glass-card-hover px-4 py-2 rounded-lg transition-opacity"
+              >
+                <Star className="w-4 h-4" />
+                Log in to save
+              </Link>
+            ) : analysis && (
               <button
                 onClick={addToWatchlist}
                 disabled={watchlistState === 'saving' || watchlistState === 'saved'}
                 className="flex items-center gap-2 text-sm glass-card glass-card-hover px-4 py-2 rounded-lg disabled:opacity-70 transition-opacity"
               >
                 {watchlistState === 'saved' ? <Check className="w-4 h-4 text-emerald" /> : <Star className="w-4 h-4" />}
-                {watchlistState === 'saved' ? 'Saved' : watchlistState === 'unauthorized' ? 'Log in to save' : 'Add to Watchlist'}
+                {watchlistState === 'saved' ? 'Saved' : 'Add to Watchlist'}
               </button>
             )}
             {analysis && (
               <Link
-                href={`/compare?symbols=${analysis.symbol}%2C`}
+                href={`/compare?symbols=${analysis.symbol}`}
                 className="flex items-center gap-2 text-sm glass-card glass-card-hover px-4 py-2 rounded-lg transition-opacity"
               >
                 <GitCompare className="w-4 h-4" />
@@ -234,15 +245,24 @@ export default function AnalysisPage() {
         {/* Error state */}
         {!loading && error && (
           <div className="text-center py-12">
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
-              <p className="text-red-700 font-medium mb-3">{error}</p>
-              <button
-                onClick={runAnalysis}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors"
-              >
-                Try Again
-              </button>
-            </div>
+            {errorCode === 'AI_QUOTA_EXCEEDED' || errorCode === 'AI_KEY_INVALID' ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 max-w-lg mx-auto">
+                <p className="text-amber-800 font-semibold mb-2">
+                  {errorCode === 'AI_QUOTA_EXCEEDED' ? 'Daily AI quota reached' : 'AI service misconfigured'}
+                </p>
+                <p className="text-amber-700 text-sm leading-relaxed">{error}</p>
+              </div>
+            ) : (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
+                <p className="text-red-700 font-medium mb-3">{error}</p>
+                <button
+                  onClick={runAnalysis}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            )}
           </div>
         )}
 

@@ -246,10 +246,30 @@ export async function POST(req: NextRequest) {
 
   } catch (error: unknown) {
     console.error('Analysis error:', error);
-    const msg = error instanceof Error ? error.message : '';
+    const msg = error instanceof Error ? error.message : String(error);
+    const status = (error as { status?: number }).status;
+
     if (msg.includes('Not Found') || msg.includes('No fundamentals') || msg.includes('404') || msg.includes('No data found') || msg.includes('delisted')) {
       return NextResponse.json({ error: 'Stock not found', code: 'STOCK_NOT_FOUND' }, { status: 404 });
     }
-    return NextResponse.json({ error: 'Analysis failed, please retry', code: 'AI_FAILED' }, { status: 500 });
+    if (status === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+      return NextResponse.json({
+        error: 'The free Gemini API daily quota (20 analyses/day) is exhausted. Analyses will resume automatically tomorrow. To run unlimited analyses, add a paid Gemini API key in your .env.local file.',
+        code: 'AI_QUOTA_EXCEEDED',
+      }, { status: 429 });
+    }
+    if (status === 400 || status === 401 || status === 403 || msg.includes('API key') || msg.includes('INVALID_ARGUMENT') || msg.includes('PERMISSION_DENIED')) {
+      return NextResponse.json({
+        error: 'AI service is misconfigured — the GEMINI_API_KEY is missing or invalid. Please add a valid key from https://aistudio.google.com to your .env.local and restart the dev server.',
+        code: 'AI_KEY_INVALID',
+      }, { status: 503 });
+    }
+    if (msg.includes('No JSON found') || msg.includes('JSON')) {
+      return NextResponse.json({
+        error: 'The AI returned an unexpected response. Please try again.',
+        code: 'AI_BAD_RESPONSE',
+      }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'Analysis failed. Please try again in a moment.', code: 'AI_FAILED' }, { status: 500 });
   }
 }

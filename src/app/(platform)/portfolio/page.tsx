@@ -23,11 +23,12 @@ export default function PortfolioPage() {
   });
 
   async function handleSelectStock(result: SearchResult) {
-    setSelectedStock(result.symbol ? result : null);
     if (!result.symbol) {
+      setSelectedStock(null);
       setForm(f => ({ ...f, symbol: '', stockName: '', price: 0 }));
       return;
     }
+    setSelectedStock(result);
     setForm(f => ({ ...f, symbol: result.symbol, stockName: result.name }));
     await refreshPrice(result.symbol);
   }

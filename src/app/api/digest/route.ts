@@ -13,7 +13,12 @@ export const maxDuration = 60;
 // Intended to be called by a scheduled cron job (e.g. once a day before market open).
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || req.headers.get('x-cron-secret') !== cronSecret) {
+  const authHeader = req.headers.get('authorization');
+  const cronHeader = req.headers.get('x-cron-secret');
+  const authorized =
+    cronSecret &&
+    (authHeader === `Bearer ${cronSecret}` || cronHeader === cronSecret);
+  if (!authorized) {
     return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   }
 

@@ -55,8 +55,10 @@ export default function WatchlistPage() {
   }
 
   async function handleRemove(id: string) {
-    await fetch(`/api/watchlist/${id}`, { method: 'DELETE' });
-    setItems(prev => prev.filter(i => i.id !== id));
+    const res = await fetch(`/api/watchlist/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      setItems(prev => prev.filter(i => i.id !== id));
+    }
   }
 
   if (unauthorized) {
