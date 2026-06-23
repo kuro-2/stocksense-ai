@@ -86,6 +86,7 @@ F&O RULES (when F&O market data is provided in the prompt):
 interface RetryInfo {
   '@type': string;
   retryDelay?: string;
+  violations?: Array<{ quotaId?: string }>;
 }
 
 function getRetryDelayMs(error: unknown, fallbackMs: number): number {
@@ -95,6 +96,13 @@ function getRetryDelayMs(error: unknown, fallbackMs: number): number {
   return Number.isFinite(seconds) ? seconds * 1000 : fallbackMs;
 }
 
+// Daily quota exhaustion (PerDay) can't be fixed by retrying — only per-minute rate limits can.
+function isDailyQuotaExhausted(error: unknown): boolean {
+  const details = (error as { errorDetails?: RetryInfo[] }).errorDetails;
+  const quotaFailure = details?.find(d => d['@type'] === 'type.googleapis.com/google.rpc.QuotaFailure');
+  return quotaFailure?.violations?.some(v => v.quotaId?.includes('PerDay')) ?? false;
+}
+
 async function generateWithRetry(model: GenerativeModel, prompt: string, retries = 2): Promise<string> {
   for (let attempt = 0; ; attempt++) {
     try {
@@ -102,6 +110,7 @@ async function generateWithRetry(model: GenerativeModel, prompt: string, retries
       return result.response.text();
     } catch (error) {
       const status = (error as { status?: number }).status;
+      if (status === 429 && isDailyQuotaExhausted(error)) throw error;
       if ((status === 503 || status === 429) && attempt < retries) {
         const delayMs = getRetryDelayMs(error, 1000 * (attempt + 1));
         await new Promise(resolve => setTimeout(resolve, delayMs));
