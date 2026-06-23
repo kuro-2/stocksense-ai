@@ -78,16 +78,19 @@ export async function getHistory(symbol: string, period: '1mo' | '3mo' | '6mo' |
   return history;
 }
 
+// Yahoo Finance returns 'NSI' for NSE and 'BSE' for BSE, not 'NSE'/'BSE'.
+const YAHOO_EXCHANGE_MAP: Record<string, string> = { NSI: 'NSE', BSE: 'BSE' };
+
 export async function searchStocks(query: string): Promise<{ symbol: string; name: string; exchange: string }[]> {
   const results = await yahooFinance.search(query);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const quotes: any[] = results?.quotes ?? [];
   return quotes
-    .filter((q: Record<string, unknown>) => q['quoteType'] === 'EQUITY' && (q['exchange'] === 'NSE' || q['exchange'] === 'BSE'))
+    .filter((q: Record<string, unknown>) => q['quoteType'] === 'EQUITY' && String(q['exchange']) in YAHOO_EXCHANGE_MAP)
     .slice(0, 10)
     .map((q: Record<string, unknown>) => ({
       symbol: String(q['symbol'] ?? '').replace('.NS', '').replace('.BO', ''),
       name: String(q['longname'] ?? q['shortname'] ?? ''),
-      exchange: String(q['exchange'] ?? 'NSE'),
+      exchange: YAHOO_EXCHANGE_MAP[String(q['exchange'])],
     }));
 }

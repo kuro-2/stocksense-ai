@@ -54,7 +54,7 @@ export function StockAutocompleteInput({ selected, onSelect, placeholder = 'Sear
       <div className="relative">
         <input
           type="text"
-          value={selected ? `${selected.symbol} — ${selected.name}` : query}
+          value={selected?.symbol ? `${selected.symbol} — ${selected.name}` : query}
           onChange={e => { onSelect({ symbol: '', name: '', exchange: '' }); setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
